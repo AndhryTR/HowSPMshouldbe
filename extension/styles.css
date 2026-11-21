@@ -1,0 +1,340 @@
+/* ==========================================================================
+   SPM Fakturis Pro - Ultimate UI/UX Transformation Stylesheet (v3.6 Clean)
+   Target: stagingsinarpanganmakmur.my.id
+   ========================================================================== */
+
+/* 1. SIDEBAR COLLAPSE ENGINE (MEMBERIKAN RUANG 100% LEBAR) */
+body.spm-sidebar-collapsed aside,
+body.spm-sidebar-collapsed [role="complementary"],
+body.spm-sidebar-collapsed nav[class*="tw:fixed"],
+body.spm-sidebar-collapsed div[class*="tw:fixed"][class*="tw:inset-y-0"] {
+    display: none !important;
+}
+
+body.spm-sidebar-collapsed main,
+body.spm-sidebar-collapsed [class*="tw:lg:pl-"],
+body.spm-sidebar-collapsed [class*="tw:md:pl-"],
+body.spm-sidebar-collapsed .tw\:lg\:pl-64,
+body.spm-sidebar-collapsed .tw\:lg\:pl-72 {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    margin-left: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* 2. QUICK ITEM ENTRY BAR (INJEKSI LANGSUNG DI ATAS TABEL) */
+.spm-quick-entry-container {
+    background-color: #f0f9ff;
+    border: 1.5px solid #0284c7;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12);
+}
+
+.spm-quick-entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0369a1;
+}
+
+.spm-quick-entry-grid {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 0.8fr 0.8fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.spm-quick-input {
+    height: 30px !important;
+    font-size: 12px !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    border: 1px solid #94a3b8 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    width: 100% !important;
+}
+
+.spm-quick-input:focus {
+    outline: 2px solid #0284c7 !important;
+    border-color: #0284c7 !important;
+}
+
+.spm-btn-quick-add {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    height: 30px !important;
+    padding: 0 14px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: background 0.15s ease !important;
+}
+
+.spm-btn-quick-add:hover {
+    background: #0369a1 !important;
+}
+
+/* 3. ULTRA-COMPACT HEADER & FIELDSETS */
+fieldset {
+    padding: 6px 12px !important;
+    margin-bottom: 8px !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+}
+
+legend {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 0 6px !important;
+    color: #475569 !important;
+}
+
+form .tw\:mb-4,
+form div[class*="tw:mb-4"] {
+    margin-bottom: 4px !important;
+}
+
+form .tw\:gap-4,
+form div[class*="tw:gap-4"] {
+    gap: 8px !important;
+}
+
+form label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    margin-bottom: 2px !important;
+    color: #334155 !important;
+}
+
+form input[type="text"],
+form input[type="number"],
+form select,
+form button:not(.btn-save):not(.spm-btn-save-print):not(.spm-btn-quick-add) {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+}
+
+/* 4. COMPACT ERP TABLE DENSITY (SEMUA 6 KOLOM DISKON TAMPIL UTUH & RAPI) */
+form table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+    margin-top: 4px !important;
+}
+
+form table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    padding: 5px 4px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-top: 1px solid #cbd5e1 !important;
+    white-space: nowrap !important;
+    z-index: 5 !important;
+    text-align: center !important;
+}
+
+form table thead th:nth-child(1),
+form table thead th:nth-child(2) {
+    text-align: left !important;
+}
+
+form table tbody td {
+    padding: 3px 4px !important;
+    font-size: 11.5px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    vertical-align: middle !important;
+}
+
+form table tbody tr:nth-child(even) {
+    background-color: #f8fafc !important;
+}
+
+form table tbody tr:hover {
+    background-color: #f0fdf4 !important;
+}
+
+/* 4 Kolom Diskon % (Disc 1-4) */
+form table tbody td:nth-child(6) input,
+form table tbody td:nth-child(7) input,
+form table tbody td:nth-child(8) input,
+form table tbody td:nth-child(9) input {
+    width: 48px !important;
+    min-width: 44px !important;
+    max-width: 52px !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    background-color: #f0f9ff !important;
+    border-color: #bae6fd !important;
+}
+
+/* 2 Kolom Diskon Rp/Satuan */
+form table tbody td:nth-child(10) input,
+form table tbody td:nth-child(11) input {
+    width: 72px !important;
+    min-width: 66px !important;
+    max-width: 78px !important;
+    text-align: right !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-weight: 600 !important;
+    background-color: #fefce8 !important;
+    border-color: #fde047 !important;
+}
+
+/* Qty Input */
+form table tbody td:nth-child(3) input {
+    width: 52px !important;
+    text-align: center !important;
+    font-weight: 700 !important;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+    outline: 2px solid #2563eb !important;
+    outline-offset: 1px !important;
+    background-color: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important;
+}
+
+input[readonly],
+textarea[readonly] {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    cursor: default !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* 5. FLOATING GRAND TOTAL STATUS BAR */
+.spm-fakturis-statusbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background: #0f172a;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+    z-index: 99999;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    border-top: 1px solid #334155;
+}
+
+.spm-statusbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.spm-badge {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    color: #94a3b8;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.spm-badge:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.spm-badge kbd {
+    background: #334155;
+    color: #f8fafc;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 700;
+}
+
+.spm-statusbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.spm-total-label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.spm-total-value {
+    font-size: 24px;
+    font-weight: 900;
+    color: #4ade80;
+    letter-spacing: -0.02em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* 6. INJECTED ACTION BUTTONS */
+.spm-btn-save-print {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0.5rem !important;
+    font-weight: 700 !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(22, 163, 74, 0.3) !important;
+}
+
+.spm-btn-save-print:hover {
+    background-color: #15803d !important;
+}
+
+.spm-keyhint {
+    margin-left: 6px;
+    background: rgba(255, 255, 255, 0.25);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+main {
+    padding-bottom: 75px !important;
+}

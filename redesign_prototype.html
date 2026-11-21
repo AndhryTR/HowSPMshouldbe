@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPM Fakturis Pro - Clean Mode (Tanpa Banner)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+            overflow-x: hidden;
+        }
+        .form-input-compact {
+            height: 26px;
+            font-size: 11px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            color: #0f172a;
+            width: 100%;
+            transition: all 0.15s ease;
+        }
+        .form-input-compact:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            background-color: #ffffff;
+        }
+        .erp-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        .erp-table th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            padding: 4px 4px;
+            border-bottom: 2px solid #cbd5e1;
+            border-top: 1px solid #cbd5e1;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .erp-table td {
+            padding: 2px 4px;
+            font-size: 11px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .erp-table tbody tr:hover {
+            background-color: #f0fdf4 !important;
+        }
+        .erp-table tbody tr.active-row {
+            background-color: #eff6ff !important;
+            border-left: 3px solid #3b82f6;
+        }
+        kbd {
+            background: #e2e8f0;
+            color: #334155;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+        #sidebar {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar.collapsed {
+            margin-left: -240px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen bg-slate-100">
+
+    <!-- SIDEBAR SIMULASI (COLLAPSED BY DEFAULT) -->
+    <aside id="sidebar" class="w-60 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800 z-40 select-none collapsed">
+        <div>
+            <div class="h-12 flex items-center justify-between px-4 border-b border-slate-800">
+                <span class="font-bold text-white text-sm flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    PT Sinar Pangan
+                </span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">Staging</span>
+            </div>
+            <div class="p-3 space-y-1 text-xs">
+                <div class="text-[10px] font-bold text-slate-500 uppercase px-2 py-1">Menu Utama</div>
+                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded text-slate-400 hover:bg-slate-800 cursor-pointer">
+                    <span>📊</span> Dashboard
+                </div>
+                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded text-slate-400 hover:bg-slate-800 cursor-pointer">
+                    <span>📦</span> Master Data
+                </div>
+                <div class="flex items-center gap-2 px-2.5 py-1.5 rounded bg-blue-600 text-white font-semibold cursor-pointer">
+                    <span>📝</span> Penjualan (Faktur)
+                </div>
+            </div>
+        </div>
+        <div class="p-3 border-t border-slate-800 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">F</div>
+                <div>
+                    <div class="font-semibold text-white leading-tight">Fauzan</div>
+                    <div class="text-[10px] text-slate-400">Fakturis</div>
+                </div>
+            </div>
+            <button id="btn-collapse-sidebar-inside" class="text-slate-400 hover:text-white p-1 rounded" title="Sembunyikan Sidebar (Ctrl+B)">
+                ◀
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA (CLEAN TANPA BANNER ATAS) -->
+    <main class="flex-1 flex flex-col min-w-0 p-3 pb-20 overflow-y-auto">
+
+        <!-- SECTION 1: HEADER TRANSAKSI (PELANGGAN + GOLONGAN PRINCIPAL) -->
+        <div class="bg-white rounded-lg border border-slate-200 p-2.5 shadow-sm mb-2">
+            <div class="grid grid-cols-12 gap-2">
+                <!-- Pelanggan / Toko Retail -->
+                <div class="col-span-12 md:col-span-4">
+                    <label class="block text-xs font-semibold text-slate-700 mb-0.5 flex items-center justify-between">
+                        <span>Pelanggan / Toko <span class="text-red-500">*</span></span>
+                        <span class="text-[10px] text-blue-600 font-normal">Tekan <kbd>F4</kbd></span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="input-customer" class="form-input-compact font-bold text-slate-900" value="TK-0082 - TOKO ANUGERAH JAYA (Cakranegara)">
+                        <div class="mt-0.5 flex items-center gap-3 text-[10.5px] text-slate-500">
+                            <span>Limit Toko: <b class="text-slate-700">Rp 48.000.000</b></span>
+                            <span>Sisa: <b class="text-emerald-700">Rp 31.500.000</b></span>
+                            <span class="bg-emerald-50 text-emerald-700 px-1 py-0.2 rounded border border-emerald-200 text-[9.5px]">Lancar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Golongan Barang / Principal -->
+                <div class="col-span-6 md:col-span-3">
+                    <label class="block text-xs font-semibold text-slate-700 mb-0.5 flex items-center justify-between">
+                        <span>Golongan (Principal) <span class="text-red-500">*</span></span>
+                        <span class="text-[10px] text-slate-400 font-mono">1 Bill</span>
+                    </label>
+                    <select class="form-input-compact font-semibold text-indigo-700 bg-indigo-50/50 border-indigo-200">
+                        <option selected>0001 — PUSAN MANIS MULIA</option>
+                        <option>0002 — WINGS SURYA</option>
+                        <option>0003 — MAYORA INDAH</option>
+                    </select>
+                    <div class="mt-0.5 text-[10.5px] text-slate-500">
+                        Plafond: <b>Rp 48.000.000</b> • TOP: <b>14 Hari</b>
+                    </div>
+                </div>
+
+                <!-- Gudang & Salesman -->
+                <div class="col-span-6 md:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-700 mb-0.5">Gudang & Sales</label>
+                    <select class="form-input-compact mb-1">
+                        <option selected>GLTM — Lombok Timur</option>
+                        <option>GMAT — Mataram</option>
+                    </select>
+                    <select class="form-input-compact text-xs">
+                        <option selected>Jayadi (Kanvas)</option>
+                        <option>Herman (TO)</option>
+                    </select>
+                </div>
+
+                <!-- Tanggal & Termin -->
+                <div class="col-span-12 md:col-span-3">
+                    <label class="block text-xs font-semibold text-slate-700 mb-0.5">Tgl & Jatuh Tempo</label>
+                    <div class="grid grid-cols-2 gap-1 mb-1">
+                        <input type="text" class="form-input-compact text-center text-xs" value="21/11/2026">
+                        <input type="text" class="form-input-compact text-center text-xs text-amber-700 font-bold bg-amber-50" value="05/12/2026">
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[11px]">
+                        <select class="form-input-compact text-[11px]">
+                            <option selected>Kredit (TOP 14)</option>
+                            <option>Kontan</option>
+                        </select>
+                        <select class="form-input-compact text-[11px]">
+                            <option selected>Dikirim (Mobil)</option>
+                            <option>Diambil</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: PROMO GRUP PRODUK -->
+        <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-2 mb-2 shadow-sm">
+            <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                    <span class="bg-amber-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px]">★</span>
+                    Promo Grup Produk & Skema Diskon Otomatis
+                </div>
+                <button type="button" id="btn-recalc-promo" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[10.5px] px-2 py-0.5 rounded shadow-sm">
+                    ⟳ Hitung Ulang Promo
+                </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <label class="flex items-center gap-1.5 bg-white border border-amber-300 rounded px-2 py-0.5 text-xs cursor-pointer">
+                    <input type="checkbox" class="accent-amber-600" checked>
+                    <span class="font-semibold text-amber-950">AOKA NOV AOKA ROGUL</span>
+                    <span class="text-[10px] text-slate-500">(Gabungan rasa)</span>
+                </label>
+                <label class="flex items-center gap-1.5 bg-white border border-amber-300 rounded px-2 py-0.5 text-xs cursor-pointer">
+                    <input type="checkbox" class="accent-amber-600" checked>
+                    <span class="font-semibold text-amber-950">PROMO MINYAK SANIA KTN</span>
+                    <span class="text-[10px] text-emerald-700 font-bold">(Disc Rp 5.000/Ktn)</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- SECTION 3: QUICK ENTRY BAR -->
+        <div class="bg-sky-50 border border-sky-200 rounded-lg p-2 mb-2 shadow-sm">
+            <div class="text-[11px] font-bold text-sky-900 mb-1 flex items-center justify-between">
+                <span class="flex items-center gap-1">
+                    <span class="bg-sky-600 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]">⚡</span>
+                    Quick Item Entry (Ketik SKU lalu tekan ENTER)
+                </span>
+                <span class="text-slate-500 font-normal">Tekan <kbd>F2</kbd></span>
+            </div>
+            <div class="grid grid-cols-12 gap-1.5 items-center">
+                <div class="col-span-12 md:col-span-5 relative">
+                    <input type="text" id="quick-sku" class="form-input-compact text-xs font-semibold text-slate-800" placeholder="Ketik SKU... (Contoh: B003, D002, N011)" autofocus>
+                    <div id="quick-suggest" class="hidden absolute left-0 right-0 top-8 bg-white border border-slate-300 rounded shadow-lg z-50 text-xs">
+                        <div class="p-2 hover:bg-blue-50 cursor-pointer border-b flex justify-between" data-sku="B003" data-name="BARICHO COCONUT SEREAL 12X20" data-stock="48" data-price="120000" data-drp1="5000">
+                            <div><span class="font-mono font-bold text-blue-700">B003</span> - BARICHO COCONUT SEREAL 12X20</div>
+                            <span class="text-slate-500">Stok: <b>48 Ktn</b> | Rp 120.000</span>
+                        </div>
+                        <div class="p-2 hover:bg-blue-50 cursor-pointer border-b flex justify-between" data-sku="D002" data-name="DOLLARS CHOCOLATE NEW 12X100" data-stock="115" data-price="145000" data-drp1="2500">
+                            <div><span class="font-mono font-bold text-blue-700">D002</span> - DOLLARS CHOCOLATE NEW 12X100</div>
+                            <span class="text-slate-500">Stok: <b>115 Ktn</b> | Rp 145.000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-3 md:col-span-2">
+                    <select id="quick-satuan" class="form-input-compact font-bold text-sky-800 bg-white">
+                        <option value="Karton" selected>Karton (Dus)</option>
+                        <option value="Bks">Bungkus (Pcs)</option>
+                    </select>
+                </div>
+                <div class="col-span-3 md:col-span-1">
+                    <input type="number" id="quick-qty" class="form-input-compact text-center font-bold text-slate-800" placeholder="Qty" value="1" min="1">
+                </div>
+                <div class="col-span-3 md:col-span-2">
+                    <input type="text" id="quick-drp1" class="form-input-compact text-center text-[10.5px] font-mono text-amber-800 font-semibold" placeholder="Disc Rp 1" value="0">
+                </div>
+                <div class="col-span-3 md:col-span-2">
+                    <button type="button" id="btn-add-quick" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-1 rounded flex items-center justify-center gap-1">
+                        <span>+ Tambah</span>
+                        <kbd class="bg-blue-800 text-white border-blue-900 text-[9px]">Enter</kbd>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: TABEL UTAMA (4 DISKON % + 2 DISKON VALUE/RP) -->
+        <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-2">
+            <div class="max-h-[300px] overflow-x-auto overflow-y-auto">
+                <table class="erp-table" id="table-items">
+                    <thead>
+                        <tr>
+                            <th class="w-7 text-center">No</th>
+                            <th class="w-20 text-left">Kode</th>
+                            <th class="text-left">Nama Produk</th>
+                            <th class="w-18 text-center">Satuan</th>
+                            <th class="w-14 text-center">Qty</th>
+                            <th class="w-16 text-center">Stok</th>
+                            <th class="w-20 text-right">Harga</th>
+                            
+                            <!-- 4 DISKON % -->
+                            <th class="w-12 text-center bg-sky-50 text-sky-900 border-l border-sky-200">Disc 1 %</th>
+                            <th class="w-12 text-center bg-sky-50 text-sky-900">Disc 2 %</th>
+                            <th class="w-12 text-center bg-sky-50 text-sky-900">Disc 3 %</th>
+                            <th class="w-12 text-center bg-sky-50 text-sky-900 border-r border-sky-200">Disc 4 %</th>
+                            
+                            <!-- 2 DISKON RP -->
+                            <th class="w-18 text-center bg-amber-50 text-amber-900">Disc Rp 1</th>
+                            <th class="w-18 text-center bg-amber-50 text-amber-900 border-r border-amber-200">Disc Rp 2</th>
+                            
+                            <th class="w-24 text-right">Subtotal</th>
+                            <th class="w-8 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-items">
+                        <!-- Baris 1 -->
+                        <tr class="active-row">
+                            <td class="text-center font-bold text-slate-500">1</td>
+                            <td class="font-mono text-xs font-semibold text-slate-700">B003</td>
+                            <td class="font-semibold text-slate-800">BARICHO COCONUT SEREAL 12X20</td>
+                            <td class="text-center">
+                                <span class="bg-slate-100 text-slate-700 px-1 py-0.2 rounded text-[10px] font-bold border">Karton</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-input-compact text-center font-bold" value="5">
+                            </td>
+                            <td class="text-center text-[10.5px] text-emerald-600 font-bold">48</td>
+                            <td class="text-right font-mono text-[11px]">120.000</td>
+                            
+                            <!-- 4 Diskon % -->
+                            <td class="text-center border-l border-sky-200 bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            <td class="text-center bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            <td class="text-center bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            <td class="text-center border-r border-sky-200 bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            
+                            <!-- 2 Diskon Rp -->
+                            <td class="text-center bg-amber-50/30">
+                                <input type="text" class="form-input-compact text-right font-mono font-semibold text-amber-800" value="5.000">
+                            </td>
+                            <td class="text-center border-r border-amber-200 bg-amber-50/30">
+                                <input type="text" class="form-input-compact text-right font-mono font-semibold text-amber-800" value="0">
+                            </td>
+                            
+                            <td class="text-right font-mono text-[11px] font-bold text-slate-800 item-subtotal">575.000</td>
+                            <td class="text-center">
+                                <button class="text-red-500 hover:text-red-700 font-bold text-sm" onclick="this.closest('tr').remove(); calculateTotals();">✕</button>
+                            </td>
+                        </tr>
+
+                        <!-- Baris 2 -->
+                        <tr>
+                            <td class="text-center font-bold text-slate-500">2</td>
+                            <td class="font-mono text-xs font-semibold text-slate-700">D002</td>
+                            <td class="font-semibold text-slate-800">DOLLARS CHOCOLATE NEW 12X100</td>
+                            <td class="text-center">
+                                <span class="bg-slate-100 text-slate-700 px-1 py-0.2 rounded text-[10px] font-bold border">Karton</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-input-compact text-center font-bold" value="10">
+                            </td>
+                            <td class="text-center text-[10.5px] text-emerald-600 font-bold">115</td>
+                            <td class="text-right font-mono text-[11px]">145.000</td>
+                            
+                            <!-- 4 Diskon % -->
+                            <td class="text-center border-l border-sky-200 bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="2%">
+                            </td>
+                            <td class="text-center bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            <td class="text-center bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            <td class="text-center border-r border-sky-200 bg-sky-50/30">
+                                <input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%">
+                            </td>
+                            
+                            <!-- 2 Diskon Rp -->
+                            <td class="text-center bg-amber-50/30">
+                                <input type="text" class="form-input-compact text-right font-mono font-semibold text-amber-800" value="2.500">
+                            </td>
+                            <td class="text-center border-r border-amber-200 bg-amber-50/30">
+                                <input type="text" class="form-input-compact text-right font-mono font-semibold text-amber-800" value="0">
+                            </td>
+                            
+                            <td class="text-right font-mono text-[11px] font-bold text-slate-800 item-subtotal">1.396.000</td>
+                            <td class="text-center">
+                                <button class="text-red-500 hover:text-red-700 font-bold text-sm" onclick="this.closest('tr').remove(); calculateTotals();">✕</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-slate-50 px-3 py-1 border-t border-slate-200 flex justify-between items-center text-xs text-slate-600">
+                <span>Total: <b>2 Item</b> (15 Karton) • Toko: <strong>TK-0082 (TOKO ANUGERAH JAYA)</strong></span>
+                <span class="text-emerald-700 font-semibold">✓ 4 Disc % + 2 Disc Rp Preserved</span>
+            </div>
+        </div>
+
+        <!-- SECTION 5: DETAIL BONUS -->
+        <div class="bg-emerald-50/60 border border-emerald-200 rounded-lg p-2 mb-2 shadow-sm">
+            <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-900">
+                    <span class="bg-emerald-600 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px]">🎁</span>
+                    Detail Barang Bonus Otomatis (Skema Promo)
+                </div>
+                <button type="button" class="text-[10px] text-emerald-700 border border-emerald-300 bg-white hover:bg-emerald-50 px-2 py-0.5 rounded font-semibold">
+                    + Add Bonus Manual
+                </button>
+            </div>
+            <div class="bg-white rounded border border-emerald-200 overflow-hidden text-xs">
+                <table class="w-full">
+                    <thead class="bg-emerald-100/60 text-emerald-900 text-[10px] font-bold uppercase">
+                        <tr>
+                            <th class="p-1 text-left">Barang Bonus</th>
+                            <th class="p-1 text-center w-20">Satuan</th>
+                            <th class="p-1 text-center w-16">Jumlah</th>
+                            <th class="p-1 text-center w-20">Stok</th>
+                            <th class="p-1 text-left">Keterangan Promo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-t border-emerald-100">
+                            <td class="p-1 font-semibold text-slate-800">D002 - DOLLARS CHOCOLATE NEW 12X100</td>
+                            <td class="p-1 text-center"><span class="bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded text-[10px] font-bold">Karton</span></td>
+                            <td class="p-1 text-center font-bold text-emerald-700">1</td>
+                            <td class="p-1 text-center text-slate-500">115</td>
+                            <td class="p-1 text-slate-600">Bonus Skema Promo Pembelian 10 Karton Dollars</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 6: FOOTER RINGKASAN BIAYA -->
+        <div class="grid grid-cols-12 gap-2 mb-4">
+            <div class="col-span-12 md:col-span-7 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Faktur / Surat Jalan</label>
+                <textarea class="form-input-compact h-12 resize-none" placeholder="Contoh: Kirim via Mobil SPM, konfirmasi ke Pak Anugerah sebelum antar..."></textarea>
+            </div>
+
+            <div class="col-span-12 md:col-span-5 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm text-xs space-y-1">
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Subtotal Barang:</span>
+                    <span class="font-mono font-bold text-slate-800" id="txt-subtotal">Rp 2.050.000</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Total Diskon (4 Disc % + 2 Disc Rp):</span>
+                    <span class="font-mono text-red-600 font-semibold" id="txt-diskon">- Rp 79.000</span>
+                </div>
+                <div class="border-t border-slate-200 pt-1 flex justify-between items-center">
+                    <span class="font-bold text-slate-800">Grand Total Tagihan:</span>
+                    <span class="font-mono text-base font-extrabold text-blue-700" id="txt-grand-total">Rp 1.971.000</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- STICKY BOTTOM ACTION BAR -->
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white px-5 py-2 flex items-center justify-between shadow-2xl z-50 border-t border-slate-700">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="font-bold text-xs tracking-wider text-slate-300 uppercase">FAKTURIS PRO</span>
+            </div>
+            <div class="hidden md:flex items-center gap-2 text-xs text-slate-400">
+                <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded cursor-pointer" id="btn-toggle-sidebar-bottom"><kbd class="bg-slate-700 text-slate-200 border-none">Ctrl+B</kbd> Sidebar</span>
+                <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded"><kbd class="bg-slate-700 text-slate-200 border-none">F2</kbd> Quick SKU</span>
+                <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded"><kbd class="bg-slate-700 text-slate-200 border-none">F4</kbd> Toko</span>
+                <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded"><kbd class="bg-slate-700 text-slate-200 border-none">Ctrl+S</kbd> Simpan</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-5">
+            <div class="text-right">
+                <div class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Grand Total</div>
+                <div class="text-xl md:text-2xl font-black text-emerald-400 tracking-tight font-mono" id="sticky-grand-total">
+                    Rp 1.971.000
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="button" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition border border-slate-600 flex items-center gap-1.5">
+                    <span>Simpan</span>
+                    <kbd class="bg-slate-800 text-slate-300 border-slate-700">Ctrl+S</kbd>
+                </button>
+
+                <button type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-1.5 rounded-lg shadow-lg transition flex items-center gap-2" onclick="alert('⚡ [SIMULASI] Faktur Berhasil Disimpan & Dialog Cetak Dibuka!');">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                    <span>Simpan & Cetak Faktur</span>
+                    <kbd class="bg-emerald-800 text-emerald-100 border-emerald-900">Alt+P</kbd>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT INTERAKTIF PROTOTIPE -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const btnInside = document.getElementById('btn-collapse-sidebar-inside');
+        const btnBottom = document.getElementById('btn-toggle-sidebar-bottom');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+        }
+
+        btnInside?.addEventListener('click', toggleSidebar);
+        btnBottom?.addEventListener('click', toggleSidebar);
+
+        document.getElementById('btn-recalc-promo').addEventListener('click', function() {
+            this.textContent = '⏳ Menghitung Promo...';
+            setTimeout(() => {
+                this.innerHTML = '<span>⟳ Hitung Ulang Promo</span>';
+                alert('✓ Promo Grup Produk berhasil dikalkulasi ulang!');
+            }, 500);
+        });
+
+        window.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
+                e.preventDefault();
+                toggleSidebar();
+            }
+            if (e.key === 'F2') {
+                e.preventDefault();
+                document.getElementById('quick-sku').focus();
+            }
+            if (e.key === 'F4') {
+                e.preventDefault();
+                document.getElementById('input-customer').focus();
+            }
+            if (e.altKey && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                alert('⚡ [SIMULASI] Faktur Disimpan dan Dialog Cetak Dibuka!');
+            }
+        });
+
+        const quickSku = document.getElementById('quick-sku');
+        const suggestBox = document.getElementById('quick-suggest');
+
+        quickSku.addEventListener('input', function() {
+            if (this.value.length >= 1) {
+                suggestBox.classList.remove('hidden');
+            } else {
+                suggestBox.classList.add('hidden');
+            }
+        });
+
+        suggestBox.addEventListener('click', function(e) {
+            const row = e.target.closest('[data-sku]');
+            if (row) {
+                quickSku.value = row.dataset.sku + ' - ' + row.dataset.name;
+                quickSku.dataset.sku = row.dataset.sku;
+                quickSku.dataset.name = row.dataset.name;
+                quickSku.dataset.price = row.dataset.price;
+                quickSku.dataset.drp1 = row.dataset.drp1;
+                document.getElementById('quick-drp1').value = row.dataset.drp1 || '0';
+                suggestBox.classList.add('hidden');
+                document.getElementById('quick-qty').focus();
+            }
+        });
+
+        document.getElementById('btn-add-quick').addEventListener('click', addItem);
+        quickSku.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') addItem();
+        });
+        document.getElementById('quick-qty').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') addItem();
+        });
+
+        function addItem() {
+            const sku = quickSku.dataset.sku || 'N011';
+            const name = quickSku.dataset.name || quickSku.value.trim() || 'NINJA UMB CHOCO CRYSPI 12X50';
+            const price = parseInt(quickSku.dataset.price) || 98000;
+            const satuan = document.getElementById('quick-satuan').value;
+            const qty = parseInt(document.getElementById('quick-qty').value) || 1;
+            const drp1 = document.getElementById('quick-drp1').value || '0';
+            const drp1Val = parseInt(drp1) || 0;
+            const subtotal = Math.max(0, (qty * price) - (qty * drp1Val));
+
+            const tbody = document.getElementById('tbody-items');
+            const rowCount = tbody.children.length + 1;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center font-bold text-slate-500">${rowCount}</td>
+                <td class="font-mono text-xs font-semibold text-slate-700">${sku}</td>
+                <td class="font-semibold text-slate-800">${name}</td>
+                <td class="text-center"><span class="bg-slate-100 text-slate-700 px-1 py-0.2 rounded text-[10px] font-bold border">${satuan}</span></td>
+                <td class="text-center"><input type="number" class="form-input-compact text-center font-bold" value="${qty}"></td>
+                <td class="text-center text-[10.5px] text-emerald-600 font-bold">60</td>
+                <td class="text-right font-mono text-[11px]">${price.toLocaleString('id-ID')}</td>
+                
+                <td class="text-center border-l border-sky-200 bg-sky-50/30"><input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%"></td>
+                <td class="text-center bg-sky-50/30"><input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%"></td>
+                <td class="text-center bg-sky-50/30"><input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%"></td>
+                <td class="text-center border-r border-sky-200 bg-sky-50/30"><input type="text" class="form-input-compact text-center font-semibold text-sky-700" value="0%"></td>
+                
+                <td class="text-center bg-amber-50/30"><input type="text" class="form-input-compact text-right font-mono font-semibold text-amber-800" value="${drp1}"></td>
+                <td class="text-center border-r border-amber-200 bg-amber-50/30"><input type="text" class="form-input-compact text-right font-mono font-semibold text-amber-800" value="0"></td>
+                
+                <td class="text-right font-mono text-[11px] font-bold text-slate-800 item-subtotal">${subtotal.toLocaleString('id-ID')}</td>
+                <td class="text-center"><button class="text-red-500 hover:text-red-700 font-bold text-sm" onclick="this.closest('tr').remove(); calculateTotals();">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+
+            quickSku.value = '';
+            document.getElementById('quick-qty').value = '1';
+            document.getElementById('quick-drp1').value = '0';
+            delete quickSku.dataset.sku;
+            delete quickSku.dataset.name;
+            delete quickSku.dataset.price;
+            delete quickSku.dataset.drp1;
+            quickSku.focus();
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let total = 0;
+            document.querySelectorAll('.item-subtotal').forEach(td => {
+                const num = parseInt(td.textContent.replace(/\./g, '')) || 0;
+                total += num;
+            });
+            const fmt = 'Rp ' + total.toLocaleString('id-ID');
+            document.getElementById('txt-subtotal').textContent = fmt;
+            document.getElementById('txt-grand-total').textContent = fmt;
+            document.getElementById('sticky-grand-total').textContent = fmt;
+        }
+    </script>
+</body>
+</html>

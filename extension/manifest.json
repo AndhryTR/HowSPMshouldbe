@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "SPM Fakturis Pro - Sinar Pangan Makmur",
+  "version": "1.0.0",
+  "description": "Ekstensi UI/UX Enhancer untuk mempercepat alur input faktur bagi Fakturis (Keyboard-First & High Density).",
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://stagingsinarpanganmakmur.my.id/*",
+        "http://stagingsinarpanganmakmur.my.id/*"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SPM Fakturis Pro"
+  }
+}

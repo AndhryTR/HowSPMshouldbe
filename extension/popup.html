@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPM Fakturis Pro</title>
+    <style>
+        body {
+            width: 280px;
+            margin: 0;
+            padding: 16px;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        h1 {
+            font-size: 15px;
+            margin: 0 0 4px 0;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        p {
+            font-size: 11px;
+            color: #94a3b8;
+            margin: 0 0 12px 0;
+            line-height: 1.4;
+        }
+        .card {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #334155;
+        }
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .shortcut-item:last-child {
+            border-bottom: none;
+        }
+        kbd {
+            background: #334155;
+            color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .status-badge {
+            display: inline-block;
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚡ SPM Fakturis Pro</h1>
+    <p>Ekstensi kustom browser untuk meningkatkan kecepatan kerja fakturis di PT Sinar Pangan Makmur.</p>
+
+    <div class="card">
+        <div class="card-title">Status Ekstensi</div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 12px;">Modul Penjualan:</span>
+            <span class="status-badge">● Aktif</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Daftar Shortcut Keyboard</div>
+        <div class="shortcut-item">
+            <span>Tambah Item Baru</span>
+            <kbd>F2</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Simpan Faktur</span>
+            <kbd>Ctrl + S</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Simpan & Cetak</span>
+            <kbd>Alt + P</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Skip Kolom Readonly</span>
+            <kbd>Tab</kbd>
+        </div>
+    </div>
+</body>
+</html>
