@@ -6,7 +6,7 @@
     <title>SPM Fakturis Pro</title>
     <style>
         body {
-            width: 280px;
+            width: 300px;
             margin: 0;
             padding: 16px;
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -19,7 +19,16 @@
             color: #38bdf8;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: space-between;
+        }
+        .ver {
+            font-size: 10px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-weight: 700;
         }
         p {
             font-size: 11px;
@@ -31,11 +40,14 @@
             background: #1e293b;
             border-radius: 8px;
             padding: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             border: 1px solid #334155;
         }
+        .card:last-child {
+            margin-bottom: 0;
+        }
         .card-title {
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -47,11 +59,12 @@
             justify-content: space-between;
             align-items: center;
             font-size: 12px;
-            padding: 4px 0;
+            padding: 5px 0;
             border-bottom: 1px solid #334155;
         }
         .shortcut-item:last-child {
             border-bottom: none;
+            padding-bottom: 0;
         }
         kbd {
             background: #334155;
@@ -73,33 +86,68 @@
     </style>
 </head>
 <body>
-    <h1>⚡ SPM Fakturis Pro</h1>
-    <p>Ekstensi kustom browser untuk meningkatkan kecepatan kerja fakturis di PT Sinar Pangan Makmur.</p>
+    <h1>
+        <span>SPM Fakturis Pro</span>
+        <span class="ver">v4.3</span>
+    </h1>
+    <p>High-density UI &amp; keyboard-first workflow untuk form penjualan PT Sinar Pangan Makmur.</p>
 
     <div class="card">
         <div class="card-title">Status Ekstensi</div>
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <span style="font-size: 12px;">Modul Penjualan:</span>
-            <span class="status-badge">● Aktif</span>
+            <span class="status-badge">Aktif</span>
         </div>
     </div>
 
     <div class="card">
         <div class="card-title">Daftar Shortcut Keyboard</div>
         <div class="shortcut-item">
-            <span>Tambah Item Baru</span>
+            <span>Buka / Tutup Sidebar</span>
+            <kbd>Ctrl + B</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Tambah Barang &amp; Cari</span>
             <kbd>F2</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Baris Baru (di Qty/Disc akhir)</span>
+            <kbd>Enter</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Pilih Pelanggan / Toko</span>
+            <kbd>F4</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Pindah Baris (Kolom Sama)</span>
+            <kbd>Alt + ↑/↓</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Hapus Baris Aktif</span>
+            <kbd>Alt + ⌫</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Hitung Ulang Promo</span>
+            <kbd>Alt + H</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Tampilkan / Sembunyikan Diskon</span>
+            <kbd>Alt + D</kbd>
         </div>
         <div class="shortcut-item">
             <span>Simpan Faktur</span>
             <kbd>Ctrl + S</kbd>
         </div>
         <div class="shortcut-item">
-            <span>Simpan & Cetak</span>
+            <span>Simpan &amp; Cetak</span>
             <kbd>Alt + P</kbd>
         </div>
         <div class="shortcut-item">
-            <span>Skip Kolom Readonly</span>
+            <span>Pilih di Pencarian Dropdown</span>
+            <kbd>↑/↓ + Enter</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Skip Readonly &amp; Stepper</span>
             <kbd>Tab</kbd>
         </div>
     </div>
