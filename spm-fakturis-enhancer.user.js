@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         SPM Fakturis Pro - PT Sinar Pangan Makmur
 // @namespace    https://stagingsinarpanganmakmur.my.id/
-// @version      4.3.0
-// @description  Precision ERP High-Density Layout, Collapsible Sidebar (Ctrl+B), F2 Instant Search, Arrow+Enter Dropdown Navigation, Auto-Open Satuan -> Qty, Live Over-Limit/Over-Stock/Duplicate Guards, Auto-Collapse Bonus & Full Keyboard Navigation.
+// @version      4.6.1
+// @description  Precision ERP High-Density Layout, Dark Mode, Auto-Focus 1->2->3, Tab/Enter/Arrow Dropdown Navigation, Quick Jenis Nota Toggle (Alt+N), F2 Instant Search & Live Guards.
 // @author       Fakturis Helper
 // @match        https://stagingsinarpanganmakmur.my.id/*
 // @match        http://stagingsinarpanganmakmur.my.id/*
@@ -316,13 +316,100 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
     color: #0f172a !important;
 }
 
-/* Field aktif + strip metrik kredit sejajar 12 kolom */
-.spm-id-sales      { grid-column: span 3 !important; order: 1 !important; }
+/* Field aktif + strip metrik kredit sejajar 12 kolom (tanpa teks terpotong) */
+.spm-id-sales      { grid-column: span 2 !important; order: 1 !important; }
 .spm-id-jatuhtempo { grid-column: span 2 !important; order: 2 !important; }
 .spm-id-kredit     { grid-column: span 2 !important; order: 3 !important; }
 .spm-id-plafond    { grid-column: span 2 !important; order: 4 !important; }
 .spm-id-kanvas     { grid-column: span 2 !important; order: 5 !important; }
-.spm-id-bill       { grid-column: span 1 !important; order: 6 !important; }
+.spm-id-bill       { grid-column: span 2 !important; order: 6 !important; }
+
+/* Toolbar kanan di legend Identitas Pelanggan (Jenis Nota Toggle + Toggle NIK/NPWP) */
+.spm-legend-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spm-nota-segmented {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.spm-nota-seg-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    padding: 0 5px;
+    text-transform: uppercase;
+}
+
+.spm-nota-seg-btn {
+    border: none !important;
+    background: transparent !important;
+    color: #475569 !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    padding: 0 8px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+.spm-nota-seg-btn:hover {
+    color: #0f172a !important;
+}
+
+.spm-nota-seg-btn.spm-nota-active-kontan {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.3) !important;
+}
+
+.spm-nota-seg-btn.spm-nota-active-kredit {
+    background: #d97706 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(217, 119, 6, 0.3) !important;
+}
+
+/* Badge Jenis Nota di Sticky Bottom Bar */
+.spm-bar-nota-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 9px;
+    border-radius: 5px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.spm-bar-nota-kontan {
+    background: rgba(14, 165, 233, 0.2);
+    color: #7dd3fc;
+    border-color: #0284c7;
+}
+
+.spm-bar-nota-kredit {
+    background: rgba(245, 158, 11, 0.22);
+    color: #fcd34d;
+    border-color: #d97706;
+}
 
 /* Field pasif (NIK, NPWP, Jenis) di baris 2 yang bisa dilipat */
 .spm-id-nik        { grid-column: span 4 !important; order: 10 !important; }
@@ -369,7 +456,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 /* Sembunyikan helper text panjang di jatuh tempo agar baris tetap rata */
 .spm-id-jatuhtempo p,
 .spm-id-jatuhtempo small,
-#tanggal_jatuh_tempo ~ * {
+body.spm-penjualan-form #tanggal_jatuh_tempo ~ * {
     display: none !important;
 }
 
@@ -641,14 +728,14 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Scoping ketat ke #table-detailbarang */
-#table-detailbarang {
+body.spm-penjualan-form #table-detailbarang {
     border-collapse: separate !important;
     border-spacing: 0 !important;
     width: 100% !important;
     margin: 0 !important;
 }
 
-#table-detailbarang thead th {
+body.spm-penjualan-form #table-detailbarang thead th {
     position: sticky !important;
     top: 0 !important;
     z-index: 5 !important;
@@ -664,72 +751,108 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
     text-align: center !important;
 }
 
-#table-detailbarang thead th:nth-child(1) {
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(1) {
     text-align: left !important;
     padding-left: 8px !important;
 }
 
 /* Header aksen biru untuk Disc 1-4 % */
-#table-detailbarang thead th:nth-child(6),
-#table-detailbarang thead th:nth-child(7),
-#table-detailbarang thead th:nth-child(8),
-#table-detailbarang thead th:nth-child(9) {
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(6),
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(7),
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(8),
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(9) {
     background-color: #e0f2fe !important;
     color: #0369a1 !important;
 }
 
 /* Header aksen kuning untuk Disc Rp/Satuan 1-2 */
-#table-detailbarang thead th:nth-child(10),
-#table-detailbarang thead th:nth-child(11) {
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(10),
+body.spm-penjualan-form #table-detailbarang thead th:nth-child(11) {
     background-color: #fef3c7 !important;
     color: #92400e !important;
 }
 
-#table-detailbarang tbody td {
+body.spm-penjualan-form #table-detailbarang tbody {
+    counter-reset: spm-row;
+}
+
+body.spm-penjualan-form #table-detailbarang tbody tr {
+    counter-increment: spm-row;
+    transition: background-color 0.1s ease;
+}
+
+body.spm-penjualan-form #table-detailbarang tbody td {
     padding: 3px 3px !important;
     font-size: 11.5px !important;
     border-bottom: 1px solid #e2e8f0 !important;
     vertical-align: middle !important;
 }
 
-#table-detailbarang tbody tr:nth-child(even) {
+body.spm-penjualan-form #table-detailbarang tbody tr:nth-child(even) {
     background-color: #f8fafc !important;
 }
 
-#table-detailbarang tbody tr:hover {
+body.spm-penjualan-form #table-detailbarang tbody tr:hover {
     background-color: #f0fdf4 !important;
 }
 
-#table-detailbarang tbody tr:focus-within {
+body.spm-penjualan-form #table-detailbarang tbody tr:focus-within {
     background-color: #eff6ff !important;
+    box-shadow: inset 3px 0 0 #0284c7 !important;
 }
 
-/* Kolom 1: Barang */
-#table-detailbarang tbody td:nth-child(1) {
-    min-width: 200px !important;
-    padding-left: 6px !important;
+/* Kolom 1: Barang + Nomor Urut Baris Otomatis (B.1) */
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(1) {
+    position: relative !important;
+    min-width: 215px !important;
+    padding-left: 28px !important;
+}
+
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(1)::before {
+    content: counter(spm-row);
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #64748b;
+    background: #f1f5f9;
+    border-radius: 4px;
+    transition: all 0.12s ease;
+}
+
+body.spm-penjualan-form #table-detailbarang tbody tr:focus-within td:nth-child(1)::before {
+    background: #0284c7;
+    color: #ffffff;
 }
 
 /* Kolom 2: Satuan */
-#table-detailbarang tbody td:nth-child(2) {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(2) {
     width: 96px !important;
     min-width: 88px !important;
 }
 
 /* Kolom 3: Jumlah (Qty Stepper Ringkas) */
-#table-detailbarang tbody td:nth-child(3) {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(3) {
     width: 96px !important;
     min-width: 90px !important;
 }
 
-#table-detailbarang .qty-step-wrap {
+body.spm-penjualan-form #table-detailbarang .qty-step-wrap {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 2px !important;
 }
 
-#table-detailbarang .qty-step-wrap button {
+body.spm-penjualan-form #table-detailbarang .qty-step-wrap button {
     width: 22px !important;
     min-width: 22px !important;
     height: 26px !important;
@@ -743,7 +866,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
     color: #334155 !important;
 }
 
-#table-detailbarang .qty-step-wrap input.qty {
+body.spm-penjualan-form #table-detailbarang .qty-step-wrap input.qty {
     width: 44px !important;
     min-width: 40px !important;
     height: 26px !important;
@@ -756,7 +879,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Kolom 4: Stok Tersedia (Readonly) */
-#table-detailbarang tbody td:nth-child(4) input {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(4) input {
     width: 54px !important;
     min-width: 48px !important;
     height: 26px !important;
@@ -770,7 +893,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Kolom 5: Harga (Readonly) */
-#table-detailbarang tbody td:nth-child(5) input {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(5) input {
     width: 84px !important;
     min-width: 78px !important;
     height: 26px !important;
@@ -781,10 +904,10 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Kolom 6-9: 4 Kolom Diskon % (Aksen Biru) */
-#table-detailbarang tbody td:nth-child(6) input,
-#table-detailbarang tbody td:nth-child(7) input,
-#table-detailbarang tbody td:nth-child(8) input,
-#table-detailbarang tbody td:nth-child(9) input {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(6) input,
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(7) input,
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(8) input,
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(9) input {
     width: 46px !important;
     min-width: 42px !important;
     max-width: 50px !important;
@@ -800,8 +923,8 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Kolom 10-11: 2 Kolom Diskon Rp/Satuan (Aksen Kuning Monospace) */
-#table-detailbarang tbody td:nth-child(10) input,
-#table-detailbarang tbody td:nth-child(11) input {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(10) input,
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(11) input {
     width: 72px !important;
     min-width: 66px !important;
     max-width: 78px !important;
@@ -818,7 +941,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Kolom 12: Subtotal (Readonly) */
-#table-detailbarang tbody td:nth-child(12) input {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(12) input {
     width: 94px !important;
     min-width: 86px !important;
     height: 26px !important;
@@ -832,7 +955,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 }
 
 /* Kolom 13: Catatan Item */
-#table-detailbarang tbody td:nth-child(13) textarea {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(13) textarea {
     width: 108px !important;
     min-width: 96px !important;
     height: 26px !important;
@@ -846,12 +969,12 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
     transition: height 0.15s ease !important;
 }
 
-#table-detailbarang tbody td:nth-child(13) textarea:focus {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(13) textarea:focus {
     height: 52px !important;
 }
 
 /* Kolom 14: Aksi Delete */
-#table-detailbarang tbody td:nth-child(14) .btn-delete {
+body.spm-penjualan-form #table-detailbarang tbody td:nth-child(14) .btn-delete {
     width: 26px !important;
     height: 26px !important;
     min-height: 26px !important;
@@ -862,7 +985,7 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
     border-radius: 5px !important;
 }
 
-#table-detailbarang tfoot td {
+body.spm-penjualan-form #table-detailbarang tfoot td {
     padding: 5px 8px !important;
     font-size: 11.5px !important;
     font-weight: 700 !important;
@@ -871,15 +994,26 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
     border-top: 1px solid var(--spm-border) !important;
 }
 
-/* Tombol Add Barang bawaan di bawah tabel dirampingkan */
+/* Tombol Add Barang bawaan di bawah tabel dirampingkan jadi subtle/ghost (B.3) */
 .spm-detail-barang-card button[onclick="addRowBarang()"] {
     width: auto !important;
     margin-top: 6px !important;
-    height: 26px !important;
-    min-height: 26px !important;
-    padding: 0 12px !important;
+    height: 25px !important;
+    min-height: 25px !important;
+    padding: 0 10px !important;
     font-size: 11px !important;
+    font-weight: 600 !important;
     border-radius: 5px !important;
+    background: transparent !important;
+    color: #0284c7 !important;
+    border: 1px dashed #93c5fd !important;
+    box-shadow: none !important;
+}
+
+.spm-detail-barang-card button[onclick="addRowBarang()"]:hover {
+    background: #f0f9ff !important;
+    border-color: #0284c7 !important;
+    color: #0369a1 !important;
 }
 
 /* ==========================================================================
@@ -932,15 +1066,15 @@ body.spm-penjualan-form form#module-transaksi textarea[readonly] {
 /* ==========================================================================
    8B. REAL-TIME VALIDATION HIGHLIGHTS (OVER-STOCK, DUPLIKAT, OVER-LIMIT)
    ========================================================================== */
-#table-detailbarang tbody tr.spm-over-stock td:nth-child(3) input.qty,
-#table-detailbarang tbody tr.spm-over-stock td:nth-child(4) input {
+body.spm-penjualan-form #table-detailbarang tbody tr.spm-over-stock td:nth-child(3) input.qty,
+body.spm-penjualan-form #table-detailbarang tbody tr.spm-over-stock td:nth-child(4) input {
     background-color: #fef2f2 !important;
     border-color: #ef4444 !important;
     color: #b91c1c !important;
     box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25) !important;
 }
 
-#table-detailbarang tbody tr.spm-duplicate-row {
+body.spm-penjualan-form #table-detailbarang tbody tr.spm-duplicate-row {
     background-color: #fffbeb !important;
     box-shadow: inset 3px 0 0 #f59e0b !important;
 }
@@ -1044,14 +1178,14 @@ ul li.spm-dd-active {
     overflow-x: auto !important;
 }
 
-#table-detailbonus {
+body.spm-penjualan-form #table-detailbonus {
     width: 100% !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
     margin: 0 !important;
 }
 
-#table-detailbonus thead th {
+body.spm-penjualan-form #table-detailbonus thead th {
     background: #dcfce7 !important;
     color: var(--spm-emerald-text) !important;
     font-size: 10px !important;
@@ -1061,8 +1195,8 @@ ul li.spm-dd-active {
     border-bottom: 1px solid var(--spm-emerald-border) !important;
 }
 
-#table-detailbonus tbody td,
-#table-detailbonus tfoot td {
+body.spm-penjualan-form #table-detailbonus tbody td,
+body.spm-penjualan-form #table-detailbonus tfoot td {
     padding: 4px 6px !important;
     font-size: 11.5px !important;
 }
@@ -1153,11 +1287,11 @@ ul li.spm-dd-active {
     font-weight: 700 !important;
 }
 
-#total_diskon {
+body.spm-penjualan-form #total_diskon {
     color: #dc2626 !important;
 }
 
-#total {
+body.spm-penjualan-form #total {
     font-size: 14px !important;
     font-weight: 900 !important;
     color: #1d4ed8 !important;
@@ -1389,6 +1523,281 @@ ul li.spm-dd-active {
     }
 }
 
+/* ==========================================================================
+   12. TABULAR-NUMS (B.2)
+   ========================================================================== */
+body.spm-penjualan-form input.input-number,
+body.spm-penjualan-form input.input-integer,
+body.spm-penjualan-form #table-detailbarang input,
+body.spm-penjualan-form .spm-id-kredit input,
+body.spm-penjualan-form .spm-id-plafond input,
+body.spm-penjualan-form .spm-id-kanvas input,
+body.spm-penjualan-form .spm-id-bill input,
+body.spm-penjualan-form .spm-summary-row input,
+.spm-total-value,
+.spm-mini-totals {
+    font-variant-numeric: tabular-nums !important;
+}
+
+/* ==========================================================================
+   13. DARK MODE (B.4 — AKTIF SAAT body.spm-penjualan-form.spm-dark)
+   ========================================================================== */
+body.spm-penjualan-form.spm-dark {
+    background-color: #0b1120 !important;
+    color: #e2e8f0 !important;
+}
+
+body.spm-penjualan-form.spm-dark header {
+    background-color: #0f172a !important;
+    border-bottom-color: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-header-grid,
+body.spm-penjualan-form.spm-dark .spm-identitas-fieldset,
+body.spm-penjualan-form.spm-dark .spm-list-promo-card,
+body.spm-penjualan-form.spm-dark .spm-detail-barang-card,
+body.spm-penjualan-form.spm-dark .spm-footer-left,
+body.spm-penjualan-form.spm-dark .spm-footer-right,
+body.spm-penjualan-form.spm-dark .spm-native-actions {
+    background-color: #111827 !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-field-stacked > label,
+body.spm-penjualan-form.spm-dark .spm-summary-row > label,
+body.spm-penjualan-form.spm-dark .spm-identitas-fieldset > legend,
+body.spm-penjualan-form.spm-dark .spm-table-title,
+body.spm-penjualan-form.spm-dark .spm-footer-left label {
+    color: #cbd5e1 !important;
+    border-bottom-color: #1e293b !important;
+}
+
+body.spm-penjualan-form.spm-dark form#module-transaksi input[type="text"],
+body.spm-penjualan-form.spm-dark form#module-transaksi input[type="number"],
+body.spm-penjualan-form.spm-dark form#module-transaksi select,
+body.spm-penjualan-form.spm-dark form#module-transaksi textarea,
+body.spm-penjualan-form.spm-dark form#module-transaksi [x-data*="searchableSelect"] > button[x-ref="tombol"] {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.spm-penjualan-form.spm-dark form#module-transaksi input[readonly],
+body.spm-penjualan-form.spm-dark form#module-transaksi textarea[readonly] {
+    background-color: #162033 !important;
+    border-color: #243247 !important;
+    color: #94a3b8 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-order-pelanggan button[x-ref="tombol"] {
+    background-color: #0c1f38 !important;
+    border-color: #0369a1 !important;
+    color: #f8fafc !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-order-golongan button[x-ref="tombol"] {
+    background-color: #1e1b4b !important;
+    border-color: #4338ca !important;
+    color: #c7d2fe !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-id-jatuhtempo input {
+    background-color: #291d07 !important;
+    border-color: #b45309 !important;
+    color: #fcd34d !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-id-kredit input {
+    background-color: #072419 !important;
+    border-color: #15803d !important;
+    color: #4ade80 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-id-bill input {
+    background-color: #0c2544 !important;
+    border-color: #1d4ed8 !important;
+    color: #93c5fd !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-identity-toggle-btn,
+body.spm-penjualan-form.spm-dark .spm-nota-segmented,
+body.spm-penjualan-form.spm-dark .spm-detail-barang-card #btnToggleDiskon {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-list-promo-card #promo-container {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-promo-grup-section {
+    background-color: #261b07 !important;
+    border-color: #92400e !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-promo-grup-section h3 {
+    color: #fcd34d !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-promo-grup-section label {
+    background-color: #1c1509 !important;
+    border-color: #b45309 !important;
+    color: #fef3c7 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-table-toolbar {
+    border-bottom-color: #1e293b !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-detail-barang-card .ui-table-wrap {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-bottom-color: #334155 !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th:nth-child(6),
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th:nth-child(7),
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th:nth-child(8),
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th:nth-child(9) {
+    background-color: #0c2a44 !important;
+    color: #7dd3fc !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th:nth-child(10),
+body.spm-penjualan-form.spm-dark #table-detailbarang thead th:nth-child(11) {
+    background-color: #2e2108 !important;
+    color: #fcd34d !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td {
+    border-bottom-color: #1e293b !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody tr:nth-child(even) {
+    background-color: #131c2e !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody tr:hover {
+    background-color: #17253a !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody tr:focus-within {
+    background-color: #172554 !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(1)::before {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(4) input {
+    background-color: #072419 !important;
+    border-color: #166534 !important;
+    color: #4ade80 !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(6) input,
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(7) input,
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(8) input,
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(9) input {
+    background-color: #0c2a44 !important;
+    border-color: #0369a1 !important;
+    color: #7dd3fc !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(10) input,
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(11) input {
+    background-color: #2e2108 !important;
+    border-color: #b45309 !important;
+    color: #fcd34d !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tbody td:nth-child(12) input {
+    background-color: #162033 !important;
+    color: #f8fafc !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang .qty-step-wrap button {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbarang tfoot td {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    border-top-color: #334155 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-detail-bonus-card {
+    background-color: #072419 !important;
+    border-color: #166534 !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-detail-bonus-card > label[for="table-detailbonus"],
+body.spm-penjualan-form.spm-dark .spm-detail-bonus-card > p {
+    color: #86efac !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-detail-bonus-card .ui-table-wrap,
+body.spm-penjualan-form.spm-dark #table-detailbonus {
+    background-color: #0f172a !important;
+    border-color: #166534 !important;
+}
+
+body.spm-penjualan-form.spm-dark #table-detailbonus thead th {
+    background-color: #0d3324 !important;
+    color: #86efac !important;
+}
+
+body.spm-penjualan-form.spm-dark .spm-detail-bonus-card button[onclick="addRowBonus()"] {
+    background-color: #0f172a !important;
+    color: #4ade80 !important;
+    border-color: #166534 !important;
+}
+
+body.spm-penjualan-form.spm-dark #total {
+    background-color: #0c2544 !important;
+    border-color: #2563eb !important;
+    color: #93c5fd !important;
+}
+
+body.spm-penjualan-form.spm-dark #total_diskon {
+    color: #fca5a5 !important;
+}
+
+/* Dark mode untuk popover dropdown Alpine yang di-teleport ke body */
+body.spm-penjualan-form.spm-dark > div[style*="position: fixed"] {
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+    color: #f1f5f9 !important;
+}
+
+body.spm-penjualan-form.spm-dark > div[style*="position: fixed"] input.dropdown-cari {
+    background-color: #0f172a !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+}
+
+body.spm-penjualan-form.spm-dark > div[style*="position: fixed"] ul li {
+    color: #e2e8f0 !important;
+}
+
+body.spm-penjualan-form.spm-dark > div[style*="position: fixed"] ul li:hover,
+body.spm-penjualan-form.spm-dark ul li.spm-dd-active {
+    background-color: #0c4a6e !important;
+    color: #e0f2fe !important;
+}
+
 `;
 
     if (typeof GM_addStyle !== 'undefined') {
@@ -1400,7 +1809,15 @@ ul li.spm-dd-active {
         document.head.appendChild(style);
     }
 
-console.log('[SPM Fakturis Pro v4.0] Aktif...');
+console.log('[SPM Fakturis Pro v4.6] Aktif...');
+
+    let isEnabled = true;
+    let isDarkMode = false;
+    let listenersInitialized = false;
+
+    function applyDarkModeClass() {
+        document.body.classList.toggle('spm-dark', Boolean(isEnabled && isDarkMode));
+    }
 
     // =========================================================================
     // 1. SIDEBAR COLLAPSE (GLOBAL)
@@ -1491,18 +1908,32 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         }
     }
 
+    function isElementVisible(el) {
+        if (!el || !el.isConnected) return false;
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+            return false;
+        }
+        return el.getClientRects().length > 0;
+    }
+
     function focusVisibleDropdownSearch(maxAttempts = 24) {
         let attempts = 0;
         const timer = setInterval(() => {
             attempts++;
             const inputs = Array.from(document.querySelectorAll('input.dropdown-cari'));
-            const visible = inputs.reverse().find((el) => el.offsetParent !== null);
+            const visible = inputs.reverse().find((el) => isElementVisible(el));
             if (visible) {
                 clearInterval(timer);
                 visible.focus();
                 visible.select();
+                const container = findDropdownContainer(visible);
+                if (container) setActiveDropdownIndex(container, 0);
             } else if (attempts >= maxAttempts) {
                 clearInterval(timer);
+                // Jika dropdown tidak punya input pencarian, tetap sorot item pertama
+                const openPopover = getOpenDropdownPopover();
+                if (openPopover) setActiveDropdownIndex(openPopover, 0);
             }
         }, 45);
     }
@@ -1541,17 +1972,120 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         }, 45);
     }
 
-    function triggerFocusPelanggan() {
-        const custHidden = document.getElementById('id_customer');
-        const wrapper = custHidden ? custHidden.closest('[x-data]') : null;
+    let lastOpenedSelectId = null;
+    let isInternalNotaSwitch = false;
+
+    function openSearchableById(hiddenInputId) {
+        const hiddenEl = document.getElementById(hiddenInputId);
+        const wrapper = hiddenEl ? hiddenEl.closest('[x-data]') : null;
         const btn = wrapper
             ? wrapper.querySelector('button[x-ref="tombol"], button')
             : null;
-        if (btn) {
-            btn.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            btn.click();
-            focusVisibleDropdownSearch();
+        if (!btn) return false;
+
+        lastOpenedSelectId = hiddenInputId;
+        btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        btn.click();
+        setTimeout(() => focusVisibleDropdownSearch(), 50);
+        return true;
+    }
+
+    function triggerFocusPelanggan() {
+        openSearchableById('id_customer');
+    }
+
+    function getCurrentNotaLabel() {
+        const notaHidden = document.getElementById('nota');
+        const wrapper = notaHidden ? notaHidden.closest('[x-data]') : null;
+        const btn = wrapper ? wrapper.querySelector('button[x-ref="tombol"], button') : null;
+        const text = (btn?.textContent || '').trim();
+        if (/kredit/i.test(text)) return 'Kredit';
+        if (/kontan|tunai|cash/i.test(text)) return 'Kontan';
+        return text || 'Kontan';
+    }
+
+    function selectNotaOption(targetMode) {
+        const notaHidden = document.getElementById('nota');
+        const wrapper = notaHidden ? notaHidden.closest('[x-data]') : null;
+        const btn = wrapper ? wrapper.querySelector('button[x-ref="tombol"], button') : null;
+        if (!btn) return;
+
+        const current = getCurrentNotaLabel();
+        const desired =
+            targetMode === 'toggle'
+                ? (/kredit/i.test(current) ? 'Kontan' : 'Kredit')
+                : targetMode;
+
+        if (desired.toLowerCase() === current.toLowerCase()) return;
+
+        isInternalNotaSwitch = true;
+        lastOpenedSelectId = null;
+        btn.click();
+
+        let attempts = 0;
+        const waitNotaMenu = setInterval(() => {
+            attempts++;
+            const openUls = Array.from(document.querySelectorAll('body > div ul')).filter(
+                (ul) => ul.offsetParent !== null
+            );
+            const targetUl = openUls[openUls.length - 1];
+            if (targetUl) {
+                const items = Array.from(targetUl.querySelectorAll('li'));
+                const match = items.find((li) =>
+                    new RegExp(desired, 'i').test(li.textContent || '')
+                );
+                if (match) {
+                    clearInterval(waitNotaMenu);
+                    match.click();
+                    setTimeout(() => {
+                        isInternalNotaSwitch = false;
+                        syncNotaUI();
+                        showToast(`Jenis Nota: ${getCurrentNotaLabel()}`);
+                    }, 80);
+                    return;
+                }
+            }
+            if (attempts >= 20) {
+                clearInterval(waitNotaMenu);
+                isInternalNotaSwitch = false;
+            }
+        }, 40);
+    }
+
+    function syncNotaUI() {
+        const current = getCurrentNotaLabel();
+        const isKredit = /kredit/i.test(current);
+
+        const btnKontan = document.getElementById('spm-nota-btn-kontan');
+        const btnKredit = document.getElementById('spm-nota-btn-kredit');
+        if (btnKontan && btnKredit) {
+            btnKontan.classList.toggle('spm-nota-active-kontan', !isKredit);
+            btnKredit.classList.toggle('spm-nota-active-kredit', isKredit);
         }
+
+        const barPill = document.getElementById('spm-bar-nota-pill');
+        if (barPill) {
+            barPill.textContent = `Nota: ${current}`;
+            barPill.classList.toggle('spm-bar-nota-kontan', !isKredit);
+            barPill.classList.toggle('spm-bar-nota-kredit', isKredit);
+        }
+    }
+
+    function initInitialHeaderFocus() {
+        if (!isPenjualanForm()) return;
+        const custVal = document.getElementById('id_customer')?.value || '';
+        if (custVal) return;
+
+        // Tunggu Alpine selesai hydrate lalu otomatis fokus ke 1. Pelanggan
+        setTimeout(() => {
+            if (!isPenjualanForm()) return;
+            const stillEmpty = !(document.getElementById('id_customer')?.value);
+            const activeTag = document.activeElement?.tagName;
+            const userAlreadyTyping = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+            if (stillEmpty && !userAlreadyTyping) {
+                openSearchableById('id_customer');
+            }
+        }, 450);
     }
 
     // =========================================================================
@@ -1633,6 +2167,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
     function setupRowAutoFlowListeners() {
         // Tangkap event change langsung (jika Alpine / script memicu change)
         document.addEventListener('change', (e) => {
+            if (!isEnabled) return;
             const target = e.target;
             if (!target || !target.matches) return;
             if (target.matches('#table-detailbarang input[name="product[]"]')) {
@@ -1653,21 +2188,57 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
             }
         }, true);
 
-        // Jika user mengklik opsi yang sama di dropdown Satuan (nilai unit[] tidak berubah),
-        // tetap lompat ke Qty agar alur input tetap cepat
+        // Catat searchableSelect mana yang sedang dibuka (untuk alur 1. Pelanggan -> 2. Golongan -> 3. Sales)
         document.addEventListener('click', (e) => {
+            if (!isEnabled) return;
+            const btn = e.target?.closest?.('[x-data*="searchableSelect"] > button[x-ref="tombol"]');
+            if (!btn) return;
+            const wrapper = btn.closest('[x-data]');
+            const hidden = wrapper?.querySelector('input[type="hidden"]');
+            if (hidden && hidden.id) {
+                lastOpenedSelectId = hidden.id;
+            } else {
+                lastOpenedSelectId = null;
+            }
+        }, true);
+
+        // Tangani pemilihan opsi dropdown (klik mouse, Enter, maupun Tab):
+        // 1) Alur Header: 1. Pelanggan -> 2. Golongan -> 3. Sales (saat belum ada baris barang)
+        // 2) Alur Baris Barang: Satuan -> auto-fokus Qty
+        document.addEventListener('click', (e) => {
+            if (!isEnabled) return;
             const li = e.target?.closest?.('ul li');
-            if (!li) return;
+            if (!li || isInternalNotaSwitch) return;
+
             const waitingRow = document.querySelector('#table-detailbarang tbody tr[data-spm-waiting-unit="1"]');
             if (waitingRow) {
                 delete waitingRow.dataset.spmWaitingUnit;
+                lastOpenedSelectId = null;
                 focusRowQty(waitingRow);
+                return;
+            }
+
+            if (lastOpenedSelectId === 'id_customer') {
+                lastOpenedSelectId = null;
+                const itemCount = document.querySelectorAll('#table-detailbarang tbody tr').length;
+                if (itemCount === 0) {
+                    setTimeout(() => openSearchableById('id_golongan'), 220);
+                }
+            } else if (lastOpenedSelectId === 'id_golongan') {
+                lastOpenedSelectId = null;
+                const itemCount = document.querySelectorAll('#table-detailbarang tbody tr').length;
+                if (itemCount === 0) {
+                    setTimeout(() => openSearchableById('sales'), 220);
+                }
+            } else if (lastOpenedSelectId === 'sales') {
+                lastOpenedSelectId = null;
             }
         }, true);
 
         // Bersihkan status menunggu jika user menekan Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                lastOpenedSelectId = null;
                 document
                     .querySelectorAll('#table-detailbarang tbody tr[data-spm-waiting-unit="1"]')
                     .forEach((tr) => delete tr.dataset.spmWaitingUnit);
@@ -1676,10 +2247,10 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
     }
 
     // =========================================================================
-    // 3C. NAVIGASI ARROW KEYS + ENTER DI SEMUA DROPDOWN PENCARIAN (.dropdown-cari)
+    // 3C. NAVIGASI ARROW KEYS + ENTER/TAB DI SEMUA DROPDOWN TERBUKA
     // =========================================================================
-    function findDropdownContainer(searchInput) {
-        let node = searchInput?.parentElement;
+    function findDropdownContainer(el) {
+        let node = el?.parentElement;
         while (node && node !== document.body) {
             if (node.querySelector('ul')) return node;
             node = node.parentElement;
@@ -1687,10 +2258,38 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         return null;
     }
 
+    function getOpenDropdownPopover() {
+        // 1. Jika fokus sedang di dalam input.dropdown-cari
+        const activeEl = document.activeElement;
+        if (activeEl?.matches?.('input.dropdown-cari') && isElementVisible(activeEl)) {
+            const fromActive = findDropdownContainer(activeEl);
+            if (fromActive && isElementVisible(fromActive)) return fromActive;
+        }
+
+        // 2. Cari popover fixed Alpine yang sedang terbuka di body (dengan atau tanpa input pencarian)
+        const candidates = Array.from(document.querySelectorAll('body > div')).reverse();
+        for (const div of candidates) {
+            if (div.id && div.id.startsWith('spm-')) continue;
+            if (!isElementVisible(div)) continue;
+            const style = getComputedStyle(div);
+            if (style.position !== 'fixed') continue;
+            if (div.querySelector('ul li')) return div;
+        }
+
+        // 3. Fallback: input.dropdown-cari mana pun yang terlihat
+        const visInput = Array.from(document.querySelectorAll('input.dropdown-cari'))
+            .reverse()
+            .find((el) => isElementVisible(el));
+        if (visInput) {
+            return findDropdownContainer(visInput);
+        }
+        return null;
+    }
+
     function getSelectableDropdownItems(container) {
         if (!container) return [];
         const allItems = Array.from(container.querySelectorAll('ul li')).filter(
-            (li) => li.offsetParent !== null
+            (li) => isElementVisible(li)
         );
         const pointerItems = allItems.filter((li) =>
             li.className && li.className.includes('cursor-pointer')
@@ -1717,9 +2316,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
     }
 
     function syncActiveDropdownDefault() {
-        const activeEl = document.activeElement;
-        if (!activeEl || !activeEl.matches || !activeEl.matches('input.dropdown-cari')) return;
-        const container = findDropdownContainer(activeEl);
+        const container = getOpenDropdownPopover();
         if (!container) return;
         const items = getSelectableDropdownItems(container);
         if (items.length === 0) return;
@@ -1733,6 +2330,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
     function setupDropdownKeyboardNav() {
         // Auto-highlight item pertama saat user mengetik atau fokus di kotak pencarian
         document.addEventListener('input', (e) => {
+            if (!isEnabled) return;
             if (!e.target?.matches?.('input.dropdown-cari')) return;
             const container = findDropdownContainer(e.target);
             if (!container) return;
@@ -1740,6 +2338,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         }, true);
 
         document.addEventListener('focusin', (e) => {
+            if (!isEnabled) return;
             if (!e.target?.matches?.('input.dropdown-cari')) return;
             const container = findDropdownContainer(e.target);
             if (!container) return;
@@ -1748,10 +2347,11 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
 
         // Sinkronkan highlight jika mouse ikut hover opsi
         document.addEventListener('mouseover', (e) => {
+            if (!isEnabled) return;
             const li = e.target?.closest?.('ul li');
-            if (!li || !li.className.includes('cursor-pointer')) return;
-            const container = li.closest('div');
-            if (!container || !container.querySelector('input.dropdown-cari')) return;
+            if (!li) return;
+            const container = getOpenDropdownPopover();
+            if (!container || !container.contains(li)) return;
             const items = getSelectableDropdownItems(container);
             const idx = items.indexOf(li);
             if (idx >= 0) {
@@ -1760,17 +2360,25 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
             }
         }, true);
 
-        // ArrowDown, ArrowUp, Enter pada input.dropdown-cari
+        // ArrowDown, ArrowUp, Enter, Tab berlaku selama ada dropdown popover yang terbuka
         document.addEventListener('keydown', (e) => {
-            const input = e.target;
-            if (!input || !input.matches || !input.matches('input.dropdown-cari')) return;
+            if (!isEnabled) return;
+            if (
+                e.key !== 'ArrowDown' &&
+                e.key !== 'ArrowUp' &&
+                e.key !== 'Enter' &&
+                !(e.key === 'Tab' && !e.shiftKey)
+            ) {
+                return;
+            }
 
-            const container = findDropdownContainer(input);
+            const container = getOpenDropdownPopover();
             if (!container) return;
 
+            const items = getSelectableDropdownItems(container);
+            if (items.length === 0) return;
+
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                const items = getSelectableDropdownItems(container);
-                if (items.length === 0) return;
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -1784,9 +2392,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
                 return;
             }
 
-            if (e.key === 'Enter') {
-                const items = getSelectableDropdownItems(container);
-                if (items.length === 0) return;
+            if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -1914,7 +2520,22 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
             tagFieldRow(fieldset, 'jenis', ['spm-id-jenis', 'spm-passive-identity']);
 
             const legend = fieldset.querySelector(':scope > legend');
-            if (legend && !legend.querySelector('#spm-identity-toggle')) {
+            if (legend && !legend.querySelector('#spm-legend-right')) {
+                const rightWrap = document.createElement('span');
+                rightWrap.id = 'spm-legend-right';
+                rightWrap.className = 'spm-legend-right';
+
+                // Segmented Toggle Jenis Nota (Kontan / Kredit) di baris atas
+                const notaSeg = document.createElement('span');
+                notaSeg.className = 'spm-nota-segmented';
+                notaSeg.title = 'Ganti Jenis Nota (Alt+N)';
+                notaSeg.innerHTML = `
+                    <span class="spm-nota-seg-label">Nota</span>
+                    <button type="button" id="spm-nota-btn-kontan" class="spm-nota-seg-btn">Kontan</button>
+                    <button type="button" id="spm-nota-btn-kredit" class="spm-nota-seg-btn">Kredit</button>
+                `;
+                rightWrap.appendChild(notaSeg);
+
                 const toggleBtn = document.createElement('button');
                 toggleBtn.type = 'button';
                 toggleBtn.id = 'spm-identity-toggle';
@@ -1931,7 +2552,12 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
                     localStorage.setItem('spm_identity_collapsed', collapsed ? 'true' : 'false');
                     updateToggleLabel();
                 });
-                legend.appendChild(toggleBtn);
+                rightWrap.appendChild(toggleBtn);
+                legend.appendChild(rightWrap);
+
+                document.getElementById('spm-nota-btn-kontan')?.addEventListener('click', () => selectNotaOption('Kontan'));
+                document.getElementById('spm-nota-btn-kredit')?.addEventListener('click', () => selectNotaOption('Kredit'));
+                syncNotaUI();
             }
         }
 
@@ -2103,6 +2729,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
             </div>
             <div class="spm-statusbar-right">
                 <div id="spm-guard-badges" class="spm-guard-badges"></div>
+                <button type="button" id="spm-bar-nota-pill" class="spm-bar-nota-pill spm-bar-nota-kontan" title="Klik atau tekan Alt+N untuk ganti Kontan / Kredit">Nota: Kontan</button>
                 <div class="spm-mini-totals">
                     <span>Subtotal: <strong id="spm-mini-subtotal">Rp 0</strong></span>
                     <span>Diskon: <strong id="spm-mini-diskon" class="spm-mini-disc">- Rp 0</strong></span>
@@ -2133,6 +2760,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         document.getElementById('spm-badge-f4')?.addEventListener('click', triggerFocusPelanggan);
         document.getElementById('spm-bar-save')?.addEventListener('click', () => getSaveButton()?.click());
         document.getElementById('spm-bar-save-print')?.addEventListener('click', triggerSaveAndPrint);
+        document.getElementById('spm-bar-nota-pill')?.addEventListener('click', () => selectNotaOption('toggle'));
 
         syncTotalsAndCount();
     }
@@ -2163,6 +2791,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         }
 
         runLiveGuardsAndBonusCollapse();
+        syncNotaUI();
     }
 
     function runLiveGuardsAndBonusCollapse() {
@@ -2276,6 +2905,7 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
     // =========================================================================
     function setupKeyboardShortcuts() {
         window.addEventListener('keydown', (e) => {
+            if (!isEnabled) return;
             // Ctrl + B: Toggle Sidebar (Global)
             if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
                 e.preventDefault();
@@ -2328,6 +2958,13 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
             if (e.altKey && (e.key === 'd' || e.key === 'D')) {
                 e.preventDefault();
                 document.getElementById('btnToggleDiskon')?.click();
+                return;
+            }
+
+            // Alt + N: Toggle Jenis Nota (Kontan / Kredit)
+            if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+                e.preventDefault();
+                selectNotaOption('toggle');
                 return;
             }
 
@@ -2397,10 +3034,10 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
     }
 
     // =========================================================================
-    // 8. INIT & DEBOUNCED OBSERVER
+    // 8. INIT, LIVE ON/OFF TOGGLE & DEBOUNCED OBSERVER
     // =========================================================================
     function applyTransformations() {
-        if (!isPenjualanForm()) return;
+        if (!isEnabled || !isPenjualanForm()) return;
         tagLayoutStructure();
         fixTabNavigation();
         injectStatusBar();
@@ -2408,20 +3045,64 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
         syncTotalsAndCount();
     }
 
-    function init() {
-        initSidebarCollapse();
+    function disableEnhancer() {
+        isEnabled = false;
+        lastOpenedSelectId = null;
+
+        // Kembalikan #btnToggleDiskon ke posisi aslinya sebelum menghapus toolbar
+        const toggleDiskonBtn = document.getElementById('btnToggleDiskon');
+        const table = document.getElementById('table-detailbarang');
+        const tableWrap = table ? table.closest('.ui-table-wrap') || table : null;
+        if (toggleDiskonBtn && tableWrap && toggleDiskonBtn.closest('#spm-table-toolbar')) {
+            tableWrap.parentNode.insertBefore(toggleDiskonBtn, tableWrap);
+        }
+
+        // Hapus semua elemen yang diinjeksi
+        [
+            '#spm-statusbar',
+            '#spm-table-toolbar',
+            '#spm-legend-right',
+            '#spm-btn-save-print',
+            '#spm-toast',
+            '#spm-pro-banner',
+            '#spm-quick-entry-bar',
+        ].forEach((sel) => document.querySelector(sel)?.remove());
+
+        document
+            .querySelectorAll('.spm-inline-kbd, .spm-bonus-count-pill, .spm-dup-tag, #spm-sisa-limit-pill, button.btn-save .spm-keyhint')
+            .forEach((el) => el.remove());
+
+        // Lepas semua class spm-* dari body dan seluruh elemen form
+        document.body.classList.remove('spm-penjualan-form', 'spm-sidebar-collapsed', 'spm-dark');
+        document.querySelectorAll('[class*="spm-"]').forEach((el) => {
+            const toRemove = Array.from(el.classList).filter((c) => c.startsWith('spm-'));
+            if (toRemove.length) el.classList.remove(...toRemove);
+            if (el.dataset && el.dataset.spmIdentityInit) {
+                delete el.dataset.spmIdentityInit;
+            }
+        });
+
+        // Kembalikan tabindex normal pada readonly / stepper
+        document
+            .querySelectorAll('form#module-transaksi [tabindex="-1"]')
+            .forEach((el) => el.removeAttribute('tabindex'));
+    }
+
+    function ensureListenersAndObserver() {
+        if (listenersInitialized) return;
+        listenersInitialized = true;
+
         setupKeyboardShortcuts();
         setupRowAutoFlowListeners();
         setupDropdownKeyboardNav();
-        handlePostSaveAutoPrint();
-        applyTransformations();
 
         let scheduled = false;
         const observer = new MutationObserver(() => {
-            if (scheduled) return;
+            if (!isEnabled || scheduled) return;
             scheduled = true;
             requestAnimationFrame(() => {
                 scheduled = false;
+                if (!isEnabled) return;
                 syncActiveDropdownDefault();
                 if (isPenjualanForm()) {
                     fixTabNavigation();
@@ -2436,11 +3117,53 @@ console.log('[SPM Fakturis Pro v4.0] Aktif...');
 
         observer.observe(document.body, { childList: true, subtree: true });
         setInterval(() => {
-            if (isPenjualanForm()) {
+            if (isEnabled && isPenjualanForm()) {
                 watchProductAndUnitSelection();
                 syncTotalsAndCount();
             }
         }, 250);
+    }
+
+    function enableEnhancer(isInitialLoad) {
+        isEnabled = true;
+        ensureListenersAndObserver();
+        initSidebarCollapse();
+        applyDarkModeClass();
+        handlePostSaveAutoPrint();
+        applyTransformations();
+        if (isInitialLoad) {
+            initInitialHeaderFocus();
+        }
+    }
+
+    function init() {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get({ spm_enabled: true, spm_dark_mode: false }, (result) => {
+                isDarkMode = Boolean(result.spm_dark_mode);
+                if (result.spm_enabled !== false) {
+                    enableEnhancer(true);
+                } else {
+                    isEnabled = false;
+                }
+            });
+
+            chrome.storage.onChanged.addListener((changes, area) => {
+                if (area !== 'local') return;
+                if (changes.spm_dark_mode) {
+                    isDarkMode = Boolean(changes.spm_dark_mode.newValue);
+                    applyDarkModeClass();
+                }
+                if (changes.spm_enabled) {
+                    if (changes.spm_enabled.newValue) {
+                        enableEnhancer(false);
+                    } else {
+                        disableEnhancer();
+                    }
+                }
+            });
+        } else {
+            enableEnhancer(true);
+        }
     }
 
     if (document.readyState === 'loading') {

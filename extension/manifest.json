@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SPM Fakturis Pro - Sinar Pangan Makmur",
-  "version": "4.3.0",
+  "version": "4.6.0",
   "description": "Ekstensi UI/UX Enhancer untuk mempercepat alur input faktur bagi Fakturis (Keyboard-First & High Density).",
   "permissions": [
     "storage"

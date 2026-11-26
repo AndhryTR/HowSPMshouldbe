@@ -16,7 +16,15 @@
 (function () {
     'use strict';
 
-    console.log('[SPM Fakturis Pro v4.0] Aktif...');
+    console.log('[SPM Fakturis Pro v4.6] Aktif...');
+
+    let isEnabled = true;
+    let isDarkMode = false;
+    let listenersInitialized = false;
+
+    function applyDarkModeClass() {
+        document.body.classList.toggle('spm-dark', Boolean(isEnabled && isDarkMode));
+    }
 
     // =========================================================================
     // 1. SIDEBAR COLLAPSE (GLOBAL)
@@ -107,18 +115,32 @@
         }
     }
 
+    function isElementVisible(el) {
+        if (!el || !el.isConnected) return false;
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+            return false;
+        }
+        return el.getClientRects().length > 0;
+    }
+
     function focusVisibleDropdownSearch(maxAttempts = 24) {
         let attempts = 0;
         const timer = setInterval(() => {
             attempts++;
             const inputs = Array.from(document.querySelectorAll('input.dropdown-cari'));
-            const visible = inputs.reverse().find((el) => el.offsetParent !== null);
+            const visible = inputs.reverse().find((el) => isElementVisible(el));
             if (visible) {
                 clearInterval(timer);
                 visible.focus();
                 visible.select();
+                const container = findDropdownContainer(visible);
+                if (container) setActiveDropdownIndex(container, 0);
             } else if (attempts >= maxAttempts) {
                 clearInterval(timer);
+                // Jika dropdown tidak punya input pencarian, tetap sorot item pertama
+                const openPopover = getOpenDropdownPopover();
+                if (openPopover) setActiveDropdownIndex(openPopover, 0);
             }
         }, 45);
     }
@@ -157,17 +179,120 @@
         }, 45);
     }
 
-    function triggerFocusPelanggan() {
-        const custHidden = document.getElementById('id_customer');
-        const wrapper = custHidden ? custHidden.closest('[x-data]') : null;
+    let lastOpenedSelectId = null;
+    let isInternalNotaSwitch = false;
+
+    function openSearchableById(hiddenInputId) {
+        const hiddenEl = document.getElementById(hiddenInputId);
+        const wrapper = hiddenEl ? hiddenEl.closest('[x-data]') : null;
         const btn = wrapper
             ? wrapper.querySelector('button[x-ref="tombol"], button')
             : null;
-        if (btn) {
-            btn.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            btn.click();
-            focusVisibleDropdownSearch();
+        if (!btn) return false;
+
+        lastOpenedSelectId = hiddenInputId;
+        btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        btn.click();
+        setTimeout(() => focusVisibleDropdownSearch(), 50);
+        return true;
+    }
+
+    function triggerFocusPelanggan() {
+        openSearchableById('id_customer');
+    }
+
+    function getCurrentNotaLabel() {
+        const notaHidden = document.getElementById('nota');
+        const wrapper = notaHidden ? notaHidden.closest('[x-data]') : null;
+        const btn = wrapper ? wrapper.querySelector('button[x-ref="tombol"], button') : null;
+        const text = (btn?.textContent || '').trim();
+        if (/kredit/i.test(text)) return 'Kredit';
+        if (/kontan|tunai|cash/i.test(text)) return 'Kontan';
+        return text || 'Kontan';
+    }
+
+    function selectNotaOption(targetMode) {
+        const notaHidden = document.getElementById('nota');
+        const wrapper = notaHidden ? notaHidden.closest('[x-data]') : null;
+        const btn = wrapper ? wrapper.querySelector('button[x-ref="tombol"], button') : null;
+        if (!btn) return;
+
+        const current = getCurrentNotaLabel();
+        const desired =
+            targetMode === 'toggle'
+                ? (/kredit/i.test(current) ? 'Kontan' : 'Kredit')
+                : targetMode;
+
+        if (desired.toLowerCase() === current.toLowerCase()) return;
+
+        isInternalNotaSwitch = true;
+        lastOpenedSelectId = null;
+        btn.click();
+
+        let attempts = 0;
+        const waitNotaMenu = setInterval(() => {
+            attempts++;
+            const openUls = Array.from(document.querySelectorAll('body > div ul')).filter(
+                (ul) => ul.offsetParent !== null
+            );
+            const targetUl = openUls[openUls.length - 1];
+            if (targetUl) {
+                const items = Array.from(targetUl.querySelectorAll('li'));
+                const match = items.find((li) =>
+                    new RegExp(desired, 'i').test(li.textContent || '')
+                );
+                if (match) {
+                    clearInterval(waitNotaMenu);
+                    match.click();
+                    setTimeout(() => {
+                        isInternalNotaSwitch = false;
+                        syncNotaUI();
+                        showToast(`Jenis Nota: ${getCurrentNotaLabel()}`);
+                    }, 80);
+                    return;
+                }
+            }
+            if (attempts >= 20) {
+                clearInterval(waitNotaMenu);
+                isInternalNotaSwitch = false;
+            }
+        }, 40);
+    }
+
+    function syncNotaUI() {
+        const current = getCurrentNotaLabel();
+        const isKredit = /kredit/i.test(current);
+
+        const btnKontan = document.getElementById('spm-nota-btn-kontan');
+        const btnKredit = document.getElementById('spm-nota-btn-kredit');
+        if (btnKontan && btnKredit) {
+            btnKontan.classList.toggle('spm-nota-active-kontan', !isKredit);
+            btnKredit.classList.toggle('spm-nota-active-kredit', isKredit);
         }
+
+        const barPill = document.getElementById('spm-bar-nota-pill');
+        if (barPill) {
+            barPill.textContent = `Nota: ${current}`;
+            barPill.classList.toggle('spm-bar-nota-kontan', !isKredit);
+            barPill.classList.toggle('spm-bar-nota-kredit', isKredit);
+        }
+    }
+
+    function initInitialHeaderFocus() {
+        if (!isPenjualanForm()) return;
+        const custVal = document.getElementById('id_customer')?.value || '';
+        if (custVal) return;
+
+        // Tunggu Alpine selesai hydrate lalu otomatis fokus ke 1. Pelanggan
+        setTimeout(() => {
+            if (!isPenjualanForm()) return;
+            const stillEmpty = !(document.getElementById('id_customer')?.value);
+            const activeTag = document.activeElement?.tagName;
+            const userAlreadyTyping = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+            if (stillEmpty && !userAlreadyTyping) {
+                openSearchableById('id_customer');
+            }
+        }, 450);
     }
 
     // =========================================================================
@@ -249,6 +374,7 @@
     function setupRowAutoFlowListeners() {
         // Tangkap event change langsung (jika Alpine / script memicu change)
         document.addEventListener('change', (e) => {
+            if (!isEnabled) return;
             const target = e.target;
             if (!target || !target.matches) return;
             if (target.matches('#table-detailbarang input[name="product[]"]')) {
@@ -269,21 +395,57 @@
             }
         }, true);
 
-        // Jika user mengklik opsi yang sama di dropdown Satuan (nilai unit[] tidak berubah),
-        // tetap lompat ke Qty agar alur input tetap cepat
+        // Catat searchableSelect mana yang sedang dibuka (untuk alur 1. Pelanggan -> 2. Golongan -> 3. Sales)
         document.addEventListener('click', (e) => {
+            if (!isEnabled) return;
+            const btn = e.target?.closest?.('[x-data*="searchableSelect"] > button[x-ref="tombol"]');
+            if (!btn) return;
+            const wrapper = btn.closest('[x-data]');
+            const hidden = wrapper?.querySelector('input[type="hidden"]');
+            if (hidden && hidden.id) {
+                lastOpenedSelectId = hidden.id;
+            } else {
+                lastOpenedSelectId = null;
+            }
+        }, true);
+
+        // Tangani pemilihan opsi dropdown (klik mouse, Enter, maupun Tab):
+        // 1) Alur Header: 1. Pelanggan -> 2. Golongan -> 3. Sales (saat belum ada baris barang)
+        // 2) Alur Baris Barang: Satuan -> auto-fokus Qty
+        document.addEventListener('click', (e) => {
+            if (!isEnabled) return;
             const li = e.target?.closest?.('ul li');
-            if (!li) return;
+            if (!li || isInternalNotaSwitch) return;
+
             const waitingRow = document.querySelector('#table-detailbarang tbody tr[data-spm-waiting-unit="1"]');
             if (waitingRow) {
                 delete waitingRow.dataset.spmWaitingUnit;
+                lastOpenedSelectId = null;
                 focusRowQty(waitingRow);
+                return;
+            }
+
+            if (lastOpenedSelectId === 'id_customer') {
+                lastOpenedSelectId = null;
+                const itemCount = document.querySelectorAll('#table-detailbarang tbody tr').length;
+                if (itemCount === 0) {
+                    setTimeout(() => openSearchableById('id_golongan'), 220);
+                }
+            } else if (lastOpenedSelectId === 'id_golongan') {
+                lastOpenedSelectId = null;
+                const itemCount = document.querySelectorAll('#table-detailbarang tbody tr').length;
+                if (itemCount === 0) {
+                    setTimeout(() => openSearchableById('sales'), 220);
+                }
+            } else if (lastOpenedSelectId === 'sales') {
+                lastOpenedSelectId = null;
             }
         }, true);
 
         // Bersihkan status menunggu jika user menekan Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                lastOpenedSelectId = null;
                 document
                     .querySelectorAll('#table-detailbarang tbody tr[data-spm-waiting-unit="1"]')
                     .forEach((tr) => delete tr.dataset.spmWaitingUnit);
@@ -292,10 +454,10 @@
     }
 
     // =========================================================================
-    // 3C. NAVIGASI ARROW KEYS + ENTER DI SEMUA DROPDOWN PENCARIAN (.dropdown-cari)
+    // 3C. NAVIGASI ARROW KEYS + ENTER/TAB DI SEMUA DROPDOWN TERBUKA
     // =========================================================================
-    function findDropdownContainer(searchInput) {
-        let node = searchInput?.parentElement;
+    function findDropdownContainer(el) {
+        let node = el?.parentElement;
         while (node && node !== document.body) {
             if (node.querySelector('ul')) return node;
             node = node.parentElement;
@@ -303,10 +465,38 @@
         return null;
     }
 
+    function getOpenDropdownPopover() {
+        // 1. Jika fokus sedang di dalam input.dropdown-cari
+        const activeEl = document.activeElement;
+        if (activeEl?.matches?.('input.dropdown-cari') && isElementVisible(activeEl)) {
+            const fromActive = findDropdownContainer(activeEl);
+            if (fromActive && isElementVisible(fromActive)) return fromActive;
+        }
+
+        // 2. Cari popover fixed Alpine yang sedang terbuka di body (dengan atau tanpa input pencarian)
+        const candidates = Array.from(document.querySelectorAll('body > div')).reverse();
+        for (const div of candidates) {
+            if (div.id && div.id.startsWith('spm-')) continue;
+            if (!isElementVisible(div)) continue;
+            const style = getComputedStyle(div);
+            if (style.position !== 'fixed') continue;
+            if (div.querySelector('ul li')) return div;
+        }
+
+        // 3. Fallback: input.dropdown-cari mana pun yang terlihat
+        const visInput = Array.from(document.querySelectorAll('input.dropdown-cari'))
+            .reverse()
+            .find((el) => isElementVisible(el));
+        if (visInput) {
+            return findDropdownContainer(visInput);
+        }
+        return null;
+    }
+
     function getSelectableDropdownItems(container) {
         if (!container) return [];
         const allItems = Array.from(container.querySelectorAll('ul li')).filter(
-            (li) => li.offsetParent !== null
+            (li) => isElementVisible(li)
         );
         const pointerItems = allItems.filter((li) =>
             li.className && li.className.includes('cursor-pointer')
@@ -333,9 +523,7 @@
     }
 
     function syncActiveDropdownDefault() {
-        const activeEl = document.activeElement;
-        if (!activeEl || !activeEl.matches || !activeEl.matches('input.dropdown-cari')) return;
-        const container = findDropdownContainer(activeEl);
+        const container = getOpenDropdownPopover();
         if (!container) return;
         const items = getSelectableDropdownItems(container);
         if (items.length === 0) return;
@@ -349,6 +537,7 @@
     function setupDropdownKeyboardNav() {
         // Auto-highlight item pertama saat user mengetik atau fokus di kotak pencarian
         document.addEventListener('input', (e) => {
+            if (!isEnabled) return;
             if (!e.target?.matches?.('input.dropdown-cari')) return;
             const container = findDropdownContainer(e.target);
             if (!container) return;
@@ -356,6 +545,7 @@
         }, true);
 
         document.addEventListener('focusin', (e) => {
+            if (!isEnabled) return;
             if (!e.target?.matches?.('input.dropdown-cari')) return;
             const container = findDropdownContainer(e.target);
             if (!container) return;
@@ -364,10 +554,11 @@
 
         // Sinkronkan highlight jika mouse ikut hover opsi
         document.addEventListener('mouseover', (e) => {
+            if (!isEnabled) return;
             const li = e.target?.closest?.('ul li');
-            if (!li || !li.className.includes('cursor-pointer')) return;
-            const container = li.closest('div');
-            if (!container || !container.querySelector('input.dropdown-cari')) return;
+            if (!li) return;
+            const container = getOpenDropdownPopover();
+            if (!container || !container.contains(li)) return;
             const items = getSelectableDropdownItems(container);
             const idx = items.indexOf(li);
             if (idx >= 0) {
@@ -376,17 +567,25 @@
             }
         }, true);
 
-        // ArrowDown, ArrowUp, Enter pada input.dropdown-cari
+        // ArrowDown, ArrowUp, Enter, Tab berlaku selama ada dropdown popover yang terbuka
         document.addEventListener('keydown', (e) => {
-            const input = e.target;
-            if (!input || !input.matches || !input.matches('input.dropdown-cari')) return;
+            if (!isEnabled) return;
+            if (
+                e.key !== 'ArrowDown' &&
+                e.key !== 'ArrowUp' &&
+                e.key !== 'Enter' &&
+                !(e.key === 'Tab' && !e.shiftKey)
+            ) {
+                return;
+            }
 
-            const container = findDropdownContainer(input);
+            const container = getOpenDropdownPopover();
             if (!container) return;
 
+            const items = getSelectableDropdownItems(container);
+            if (items.length === 0) return;
+
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                const items = getSelectableDropdownItems(container);
-                if (items.length === 0) return;
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -400,9 +599,7 @@
                 return;
             }
 
-            if (e.key === 'Enter') {
-                const items = getSelectableDropdownItems(container);
-                if (items.length === 0) return;
+            if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -530,7 +727,22 @@
             tagFieldRow(fieldset, 'jenis', ['spm-id-jenis', 'spm-passive-identity']);
 
             const legend = fieldset.querySelector(':scope > legend');
-            if (legend && !legend.querySelector('#spm-identity-toggle')) {
+            if (legend && !legend.querySelector('#spm-legend-right')) {
+                const rightWrap = document.createElement('span');
+                rightWrap.id = 'spm-legend-right';
+                rightWrap.className = 'spm-legend-right';
+
+                // Segmented Toggle Jenis Nota (Kontan / Kredit) di baris atas
+                const notaSeg = document.createElement('span');
+                notaSeg.className = 'spm-nota-segmented';
+                notaSeg.title = 'Ganti Jenis Nota (Alt+N)';
+                notaSeg.innerHTML = `
+                    <span class="spm-nota-seg-label">Nota</span>
+                    <button type="button" id="spm-nota-btn-kontan" class="spm-nota-seg-btn">Kontan</button>
+                    <button type="button" id="spm-nota-btn-kredit" class="spm-nota-seg-btn">Kredit</button>
+                `;
+                rightWrap.appendChild(notaSeg);
+
                 const toggleBtn = document.createElement('button');
                 toggleBtn.type = 'button';
                 toggleBtn.id = 'spm-identity-toggle';
@@ -547,7 +759,12 @@
                     localStorage.setItem('spm_identity_collapsed', collapsed ? 'true' : 'false');
                     updateToggleLabel();
                 });
-                legend.appendChild(toggleBtn);
+                rightWrap.appendChild(toggleBtn);
+                legend.appendChild(rightWrap);
+
+                document.getElementById('spm-nota-btn-kontan')?.addEventListener('click', () => selectNotaOption('Kontan'));
+                document.getElementById('spm-nota-btn-kredit')?.addEventListener('click', () => selectNotaOption('Kredit'));
+                syncNotaUI();
             }
         }
 
@@ -719,6 +936,7 @@
             </div>
             <div class="spm-statusbar-right">
                 <div id="spm-guard-badges" class="spm-guard-badges"></div>
+                <button type="button" id="spm-bar-nota-pill" class="spm-bar-nota-pill spm-bar-nota-kontan" title="Klik atau tekan Alt+N untuk ganti Kontan / Kredit">Nota: Kontan</button>
                 <div class="spm-mini-totals">
                     <span>Subtotal: <strong id="spm-mini-subtotal">Rp 0</strong></span>
                     <span>Diskon: <strong id="spm-mini-diskon" class="spm-mini-disc">- Rp 0</strong></span>
@@ -749,6 +967,7 @@
         document.getElementById('spm-badge-f4')?.addEventListener('click', triggerFocusPelanggan);
         document.getElementById('spm-bar-save')?.addEventListener('click', () => getSaveButton()?.click());
         document.getElementById('spm-bar-save-print')?.addEventListener('click', triggerSaveAndPrint);
+        document.getElementById('spm-bar-nota-pill')?.addEventListener('click', () => selectNotaOption('toggle'));
 
         syncTotalsAndCount();
     }
@@ -779,6 +998,7 @@
         }
 
         runLiveGuardsAndBonusCollapse();
+        syncNotaUI();
     }
 
     function runLiveGuardsAndBonusCollapse() {
@@ -892,6 +1112,7 @@
     // =========================================================================
     function setupKeyboardShortcuts() {
         window.addEventListener('keydown', (e) => {
+            if (!isEnabled) return;
             // Ctrl + B: Toggle Sidebar (Global)
             if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
                 e.preventDefault();
@@ -944,6 +1165,13 @@
             if (e.altKey && (e.key === 'd' || e.key === 'D')) {
                 e.preventDefault();
                 document.getElementById('btnToggleDiskon')?.click();
+                return;
+            }
+
+            // Alt + N: Toggle Jenis Nota (Kontan / Kredit)
+            if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+                e.preventDefault();
+                selectNotaOption('toggle');
                 return;
             }
 
@@ -1013,10 +1241,10 @@
     }
 
     // =========================================================================
-    // 8. INIT & DEBOUNCED OBSERVER
+    // 8. INIT, LIVE ON/OFF TOGGLE & DEBOUNCED OBSERVER
     // =========================================================================
     function applyTransformations() {
-        if (!isPenjualanForm()) return;
+        if (!isEnabled || !isPenjualanForm()) return;
         tagLayoutStructure();
         fixTabNavigation();
         injectStatusBar();
@@ -1024,20 +1252,64 @@
         syncTotalsAndCount();
     }
 
-    function init() {
-        initSidebarCollapse();
+    function disableEnhancer() {
+        isEnabled = false;
+        lastOpenedSelectId = null;
+
+        // Kembalikan #btnToggleDiskon ke posisi aslinya sebelum menghapus toolbar
+        const toggleDiskonBtn = document.getElementById('btnToggleDiskon');
+        const table = document.getElementById('table-detailbarang');
+        const tableWrap = table ? table.closest('.ui-table-wrap') || table : null;
+        if (toggleDiskonBtn && tableWrap && toggleDiskonBtn.closest('#spm-table-toolbar')) {
+            tableWrap.parentNode.insertBefore(toggleDiskonBtn, tableWrap);
+        }
+
+        // Hapus semua elemen yang diinjeksi
+        [
+            '#spm-statusbar',
+            '#spm-table-toolbar',
+            '#spm-legend-right',
+            '#spm-btn-save-print',
+            '#spm-toast',
+            '#spm-pro-banner',
+            '#spm-quick-entry-bar',
+        ].forEach((sel) => document.querySelector(sel)?.remove());
+
+        document
+            .querySelectorAll('.spm-inline-kbd, .spm-bonus-count-pill, .spm-dup-tag, #spm-sisa-limit-pill, button.btn-save .spm-keyhint')
+            .forEach((el) => el.remove());
+
+        // Lepas semua class spm-* dari body dan seluruh elemen form
+        document.body.classList.remove('spm-penjualan-form', 'spm-sidebar-collapsed', 'spm-dark');
+        document.querySelectorAll('[class*="spm-"]').forEach((el) => {
+            const toRemove = Array.from(el.classList).filter((c) => c.startsWith('spm-'));
+            if (toRemove.length) el.classList.remove(...toRemove);
+            if (el.dataset && el.dataset.spmIdentityInit) {
+                delete el.dataset.spmIdentityInit;
+            }
+        });
+
+        // Kembalikan tabindex normal pada readonly / stepper
+        document
+            .querySelectorAll('form#module-transaksi [tabindex="-1"]')
+            .forEach((el) => el.removeAttribute('tabindex'));
+    }
+
+    function ensureListenersAndObserver() {
+        if (listenersInitialized) return;
+        listenersInitialized = true;
+
         setupKeyboardShortcuts();
         setupRowAutoFlowListeners();
         setupDropdownKeyboardNav();
-        handlePostSaveAutoPrint();
-        applyTransformations();
 
         let scheduled = false;
         const observer = new MutationObserver(() => {
-            if (scheduled) return;
+            if (!isEnabled || scheduled) return;
             scheduled = true;
             requestAnimationFrame(() => {
                 scheduled = false;
+                if (!isEnabled) return;
                 syncActiveDropdownDefault();
                 if (isPenjualanForm()) {
                     fixTabNavigation();
@@ -1052,11 +1324,53 @@
 
         observer.observe(document.body, { childList: true, subtree: true });
         setInterval(() => {
-            if (isPenjualanForm()) {
+            if (isEnabled && isPenjualanForm()) {
                 watchProductAndUnitSelection();
                 syncTotalsAndCount();
             }
         }, 250);
+    }
+
+    function enableEnhancer(isInitialLoad) {
+        isEnabled = true;
+        ensureListenersAndObserver();
+        initSidebarCollapse();
+        applyDarkModeClass();
+        handlePostSaveAutoPrint();
+        applyTransformations();
+        if (isInitialLoad) {
+            initInitialHeaderFocus();
+        }
+    }
+
+    function init() {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get({ spm_enabled: true, spm_dark_mode: false }, (result) => {
+                isDarkMode = Boolean(result.spm_dark_mode);
+                if (result.spm_enabled !== false) {
+                    enableEnhancer(true);
+                } else {
+                    isEnabled = false;
+                }
+            });
+
+            chrome.storage.onChanged.addListener((changes, area) => {
+                if (area !== 'local') return;
+                if (changes.spm_dark_mode) {
+                    isDarkMode = Boolean(changes.spm_dark_mode.newValue);
+                    applyDarkModeClass();
+                }
+                if (changes.spm_enabled) {
+                    if (changes.spm_enabled.newValue) {
+                        enableEnhancer(false);
+                    } else {
+                        disableEnhancer();
+                    }
+                }
+            });
+        } else {
+            enableEnhancer(true);
+        }
     }
 
     if (document.readyState === 'loading') {
